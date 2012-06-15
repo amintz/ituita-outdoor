@@ -1,6 +1,6 @@
 # Xcode
 build/*
-bin/*
+*.app
 *.pbxuser
 !default.pbxuser
 *.mode1v3
