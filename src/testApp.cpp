@@ -7,9 +7,9 @@ void testApp::setup(){
 	// enable depth->video image calibration
 	kinect.setRegistration(true);
     
-	//kinect.init();
+	kinect.init();
 	//kinect.init(true); // shows infrared instead of RGB video image
-	kinect.init(false, false); // disable video image (faster fps)
+	//kinect.init(false, false); // disable video image (faster fps)
 	kinect.open();
 	
 #ifdef USE_TWO_KINECTS
@@ -20,6 +20,10 @@ void testApp::setup(){
     // zero the tilt on startup
 	angle = 0;
 	kinect.setCameraTiltAngle(angle);
+    
+    bKeyDPressed = false;
+    iRightCrop = 0;
+    iLeftCrop = 0;
     
     
 }
@@ -45,7 +49,14 @@ void testApp::draw(){
     easyCam.begin();
     drawPointCloud();
     easyCam.end();
-
+    
+    if(bOverlay) {
+        ofSetColor(0, 0, 0);
+        ofRect(10, 10, 340, 500);
+        ofSetColor(255, 255, 255);
+        kinect.draw(20, 20, 320, 240);
+        kinect.drawDepth(20, 260, 320, 240);
+    }
 }
 
 void testApp::drawPointCloud() {
@@ -53,11 +64,11 @@ void testApp::drawPointCloud() {
 	int h = 480;
 	ofMesh mesh;
 	mesh.setMode(OF_PRIMITIVE_POINTS);
-	int step = 2;
+	int step = 1;
 	for(int y = 0; y < h; y += step) {
-		for(int x = 0; x < w; x += step) {
+		for(int x = iLeftCrop; x < 640-iRightCrop; x += step) {
 			if(kinect.getDistanceAt(x, y) > 0) {
-				mesh.addColor(0xFFFFFF);
+				mesh.addColor(kinect.getColorAt(x, y));
 				mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
 			}
 		}
@@ -91,9 +102,9 @@ void testApp::keyPressed(int key){
 //			bThreshWithOpenCV = !bThreshWithOpenCV;
 //			break;
 //			
-//		case'p':
-//			bDrawPointCloud = !bDrawPointCloud;
-//			break;
+		case'p':
+			bOverlay = !bOverlay;
+			break;
 //			
 //		case '>':
 //		case '.':
@@ -118,6 +129,10 @@ void testApp::keyPressed(int key){
 //			if (nearThreshold < 0) nearThreshold = 0;
 //			break;
 			
+        case 'd':
+            bKeyDPressed = true;
+            break;
+            
 		case 'w':
 			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
 			break;
@@ -143,6 +158,34 @@ void testApp::keyPressed(int key){
 			if(angle<-30) angle=-30;
 			kinect.setCameraTiltAngle(angle);
 			break;
+            
+        case OF_KEY_LEFT:
+            if(bKeyDPressed) {
+                if (iRightCrop < 650 - iLeftCrop) {
+                    iRightCrop ++;
+                }
+            }
+            else {
+                if (iLeftCrop > 0) {
+                    iLeftCrop --;
+                }
+            }
+            break;
+            
+        case OF_KEY_RIGHT:
+            if(bKeyDPressed) {
+                if (iRightCrop > 0 ) {
+                    iRightCrop --;
+                }
+            }
+            else {
+                if (iLeftCrop < 640 - iRightCrop) {
+                    iLeftCrop ++;
+                }
+                
+            }
+            break;
+            
 	}
 
 
@@ -150,6 +193,14 @@ void testApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void testApp::keyReleased(int key){
+    switch (key) {
+        case 'd':
+            bKeyDPressed = false;
+            break;
+            
+        default:
+            break;
+    }
 
 }
 

@@ -27,6 +27,14 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
     ofxKinect kinect;
+    
+    float fMaxDist;
+    float fMinDist;
+    
+    bool bOverlay;
+    bool bKeyDPressed;
+    int  iLeftCrop;
+    int  iRightCrop;
 	
 #ifdef USE_TWO_KINECTS
 	ofxKinect kinect2;
