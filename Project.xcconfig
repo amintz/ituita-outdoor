@@ -7,7 +7,10 @@ OF_PATH = ../../..
 
 OTHER_LDFLAGS = $(OF_CORE_LIBS) 
 HEADER_SEARCH_PATHS = $(OF_CORE_HEADERS)
+OTHER_LDFLAGS = $(OF_CORE_LIBS) $(OF_ADDON_LIBS)
 
+///////////////////////////////////////////
+// ADDONS
 
 // path to the addons dir
 ADDONS_PATH = $(OF_PATH)/addons
@@ -22,3 +25,5 @@ OFX_KINECT_LIBS = "$(ADDONS_PATH)/ofxKinect/libs/libusb/osx/libs/usb-1.0.a"
 // all addons
 OF_ADDON_HEADERS = $(OFX_KINECT_HEADERS) $(OFX_OPENCV_HEADERS)
 OF_ADDON_LIBS = $(OFX_KINECT_LIBS)
+
+///////////////////////////////////////////

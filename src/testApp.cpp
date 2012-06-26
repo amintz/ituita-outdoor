@@ -2,29 +2,46 @@
 
 //--------------------------------------------------------------
 void testApp::setup(){
-    ofSetLogLevel(OF_LOG_VERBOSE);
-	
-	// enable depth->video image calibration
-	kinect.setRegistration(true);
     
-	kinect.init();
-	//kinect.init(true); // shows infrared instead of RGB video image
-	//kinect.init(false, false); // disable video image (faster fps)
-	kinect.open();
+    ofSetLogLevel(OF_LOG_VERBOSE);
+    
+// MARK: KINECT AND RELATED OBJECTS INITIALIZATION
+    
+    kinect1.init(false, false);
+	kinect1.open();
+    cvGrayKin1.allocate(640, 480);
 	
 #ifdef USE_TWO_KINECTS
-	kinect2.init();
+	kinect2.init(false, false);
 	kinect2.open();
+    cvGrayKin2.allocate(640, 480);
 #endif
+    
+// --------------------------------------------
+    
+// MARK: INTERFACE SETUP
+    
+    iDrawWidth  = 400;
+    iDrawHeight = 300;
+    
+    iTopMargin  = 115;
+    iLeftMargin = 250;
+    
+    bDrawDepthMap   = true;
+    bDrawThreshold  = false;
+    bDrawBlobs      = false;
+    
+// --------------------------------------------
+	
+
     
     // zero the tilt on startup
 	angle = 0;
-	kinect.setCameraTiltAngle(angle);
-    
-    bKeyDPressed = false;
-    iRightCrop = 0;
-    iLeftCrop = 0;
-    
+	kinect1.setCameraTiltAngle(angle);
+
+    gui.setup();
+    gui.addButton("test button", testBool);
+    gui.show();
     
 }
 
@@ -33,7 +50,7 @@ void testApp::update(){
     
     ofBackground(100, 100, 100);
 	
-	kinect.update();
+	kinect1.update();
     
 #ifdef USE_TWO_KINECTS
 	kinect2.update();
@@ -45,49 +62,26 @@ void testApp::update(){
 void testApp::draw(){
     
     ofSetColor(255, 255, 255);
-	
-    easyCam.begin();
-    drawPointCloud();
-    easyCam.end();
+    ofNoFill();
     
-    if(bOverlay) {
-        ofSetColor(0, 0, 0);
-        ofRect(10, 10, 340, 500);
-        ofSetColor(255, 255, 255);
-        kinect.draw(20, 20, 320, 240);
-        kinect.drawDepth(20, 260, 320, 240);
-    }
-}
-
-void testApp::drawPointCloud() {
-	int w = 640;
-	int h = 480;
-	ofMesh mesh;
-	mesh.setMode(OF_PRIMITIVE_POINTS);
-	int step = 1;
-	for(int y = 0; y < h; y += step) {
-		for(int x = iLeftCrop; x < 640-iRightCrop; x += step) {
-			if(kinect.getDistanceAt(x, y) > 0) {
-				mesh.addColor(kinect.getColorAt(x, y));
-				mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
-			}
-		}
-	}
-	glPointSize(3);
-	ofPushMatrix();
-	// the projected points are 'upside down' and 'backwards' 
-	ofScale(1, -1, -1);
-	ofTranslate(0, 0, -1000); // center the points a bit
-	glEnable(GL_DEPTH_TEST);
-	mesh.drawVertices();
-	glDisable(GL_DEPTH_TEST);
-	ofPopMatrix();
+    kinect1.drawDepth(iLeftMargin, iTopMargin, iDrawWidth, iDrawHeight);
+    ofRect(iLeftMargin, iTopMargin, iDrawWidth, iDrawHeight);
+    ofDrawBitmapString("Kinect 1", iLeftMargin + 5, iTopMargin + 15);
+    
+#ifdef USE_TWO_KINECTS
+    kinect2.drawDepth(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
+    ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
+    ofDrawBitmapString("Kinect 2", iLeftMargin + iDrawWidth + 25, iTopMargin + 15);
+#endif
+    
+    gui.draw();
+    
 }
 
 //--------------------------------------------------------------
 void testApp::exit() {
-	kinect.setCameraTiltAngle(0); // zero the tilt on exit
-	kinect.close();
+	kinect1.setCameraTiltAngle(0); // zero the tilt on exit
+	kinect1.close();
 	
 #ifdef USE_TWO_KINECTS
 	kinect2.close();
@@ -98,94 +92,55 @@ void testApp::exit() {
 void testApp::keyPressed(int key){
     
     switch (key) {
-//		case ' ':
-//			bThreshWithOpenCV = !bThreshWithOpenCV;
-//			break;
-//			
-		case'p':
-			bOverlay = !bOverlay;
+            
+		case '>':
+		case '.':
+			farThreshold ++;
+			if (farThreshold > 255) farThreshold = 255;
 			break;
-//			
-//		case '>':
-//		case '.':
-//			farThreshold ++;
-//			if (farThreshold > 255) farThreshold = 255;
-//			break;
-//			
-//		case '<':
-//		case ',':
-//			farThreshold --;
-//			if (farThreshold < 0) farThreshold = 0;
-//			break;
-//			
-//		case '+':
-//		case '=':
-//			nearThreshold ++;
-//			if (nearThreshold > 255) nearThreshold = 255;
-//			break;
-//			
-//		case '-':
-//			nearThreshold --;
-//			if (nearThreshold < 0) nearThreshold = 0;
-//			break;
 			
-        case 'd':
-            bKeyDPressed = true;
-            break;
+		case '<':
+		case ',':
+			farThreshold --;
+			if (farThreshold < 0) farThreshold = 0;
+			break;
+			
+		case '+':
+		case '=':
+			nearThreshold ++;
+			if (nearThreshold > 255) nearThreshold = 255;
+			break;
+			
+		case '-':
+			nearThreshold --;
+			if (nearThreshold < 0) nearThreshold = 0;
+			break;
             
 		case 'w':
-			kinect.enableDepthNearValueWhite(!kinect.isDepthNearValueWhite());
+			kinect1.enableDepthNearValueWhite(!kinect1.isDepthNearValueWhite());
 			break;
 			
 		case 'o':
-			kinect.setCameraTiltAngle(angle); // go back to prev tilt
-			kinect.open();
+			kinect1.setCameraTiltAngle(angle); // go back to prev tilt
+			kinect1.open();
 			break;
 			
 		case 'c':
-			kinect.setCameraTiltAngle(0); // zero the tilt
-			kinect.close();
+			kinect1.setCameraTiltAngle(0); // zero the tilt
+			kinect1.close();
 			break;
 			
 		case OF_KEY_UP:
 			angle++;
 			if(angle>30) angle=30;
-			kinect.setCameraTiltAngle(angle);
+			kinect1.setCameraTiltAngle(angle);
 			break;
 			
 		case OF_KEY_DOWN:
 			angle--;
 			if(angle<-30) angle=-30;
-			kinect.setCameraTiltAngle(angle);
+			kinect1.setCameraTiltAngle(angle);
 			break;
-            
-        case OF_KEY_LEFT:
-            if(bKeyDPressed) {
-                if (iRightCrop < 650 - iLeftCrop) {
-                    iRightCrop ++;
-                }
-            }
-            else {
-                if (iLeftCrop > 0) {
-                    iLeftCrop --;
-                }
-            }
-            break;
-            
-        case OF_KEY_RIGHT:
-            if(bKeyDPressed) {
-                if (iRightCrop > 0 ) {
-                    iRightCrop --;
-                }
-            }
-            else {
-                if (iLeftCrop < 640 - iRightCrop) {
-                    iLeftCrop ++;
-                }
-                
-            }
-            break;
-            
 	}
 
 
@@ -193,14 +148,6 @@ void testApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void testApp::keyReleased(int key){
-    switch (key) {
-        case 'd':
-            bKeyDPressed = false;
-            break;
-            
-        default:
-            break;
-    }
 
 }
 
