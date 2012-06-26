@@ -8,15 +8,29 @@ void testApp::setup(){
 // MARK: KINECT AND RELATED OBJECTS INITIALIZATION
     
     kinect1.init(false, false);
-	kinect1.open();
+	kinect1.open(0);
+    cvGrayKin1ThreshNear.allocate(640, 480);
+    cvGrayKin1ThreshFar.allocate(640, 480);
     cvGrayKin1.allocate(640, 480);
 	
 #ifdef USE_TWO_KINECTS
 	kinect2.init(false, false);
-	kinect2.open();
+	kinect2.open(1);
+    cvGrayKin2ThreshNear.allocate(640, 480);
+    cvGrayKin2ThreshFar.allocate(640, 480);
     cvGrayKin2.allocate(640, 480);
 #endif
     
+// --------------------------------------------
+
+// MARK: CONTROL VARIABLES SETUP
+    
+    iNearThreshold  = 0;
+    iFarThreshold   = 255;
+    iMinBlobSize    = 20;
+    fMaxBlobFraction= 4;
+    iMaxNumBlobs    = 10;
+
 // --------------------------------------------
     
 // MARK: INTERFACE SETUP
@@ -31,6 +45,14 @@ void testApp::setup(){
     bDrawThreshold  = false;
     bDrawBlobs      = false;
     
+    gui.loadFromXML();
+    gui.addSlider("Near Threshold", iNearThreshold, 0, 255);
+    gui.addSlider("Far Threshold", iFarThreshold, 255, 0);
+    gui.addSlider("Min Blob Size", iMinBlobSize, 0, 40000);
+    gui.addSlider("Max Blob Fraction of Img", fMaxBlobFraction, 1.0, 20.0);
+    gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
+    gui.show();
+    
 // --------------------------------------------
 	
 
@@ -39,9 +61,7 @@ void testApp::setup(){
 	angle = 0;
 	kinect1.setCameraTiltAngle(angle);
 
-    gui.setup();
-    gui.addButton("test button", testBool);
-    gui.show();
+
     
 }
 
@@ -52,8 +72,37 @@ void testApp::update(){
 	
 	kinect1.update();
     
+    if (kinect1.isFrameNew()) {
+        cvGrayKin1.setFromPixels(kinect1.getDepthPixels(), kinect1.width, kinect1.height);
+            
+            cvGrayKin1ThreshNear    = cvGrayKin1;
+            cvGrayKin1ThreshFar     = cvGrayKin1;
+			
+            cvGrayKin1ThreshNear.threshold(255 - iNearThreshold, true);
+			cvGrayKin1ThreshFar.threshold(255 - iFarThreshold);
+			cvAnd(cvGrayKin1ThreshNear.getCvImage(), cvGrayKin1ThreshFar.getCvImage(), cvGrayKin1.getCvImage(), NULL);
+        
+        cvGrayKin1.flagImageChanged();
+        cvContKin1.findContours(cvGrayKin1, iMinBlobSize, (kinect1.width*kinect1.height)/fMaxBlobFraction, iMaxNumBlobs, false);
+    }
+    
 #ifdef USE_TWO_KINECTS
 	kinect2.update();
+    
+    if (kinect2.isFrameNew()) {
+        cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
+        
+        cvGrayKin2ThreshNear    = cvGrayKin2;
+        cvGrayKin2ThreshFar     = cvGrayKin2;
+        
+        cvGrayKin2ThreshNear.threshold(255 - iNearThreshold, true);
+        cvGrayKin2ThreshFar.threshold(255 - iFarThreshold);
+        cvAnd(cvGrayKin2ThreshNear.getCvImage(), cvGrayKin2ThreshFar.getCvImage(), cvGrayKin2.getCvImage(), NULL);
+        
+        cvGrayKin2.flagImageChanged();
+        cvContKin2.findContours(cvGrayKin2, iMinBlobSize, (kinect1.width*kinect1.height)/fMaxBlobFraction, iMaxNumBlobs, false);
+    }
+    
 #endif
 
 }
@@ -68,10 +117,19 @@ void testApp::draw(){
     ofRect(iLeftMargin, iTopMargin, iDrawWidth, iDrawHeight);
     ofDrawBitmapString("Kinect 1", iLeftMargin + 5, iTopMargin + 15);
     
+    cvGrayKin1.draw(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    cvContKin1.draw(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    ofRect(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    
 #ifdef USE_TWO_KINECTS
     kinect2.drawDepth(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
     ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
     ofDrawBitmapString("Kinect 2", iLeftMargin + iDrawWidth + 25, iTopMargin + 15);
+    
+    cvGrayKin2.draw(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    cvContKin2.draw(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
+    
 #endif
     
     gui.draw();
@@ -93,29 +151,7 @@ void testApp::keyPressed(int key){
     
     switch (key) {
             
-		case '>':
-		case '.':
-			farThreshold ++;
-			if (farThreshold > 255) farThreshold = 255;
-			break;
-			
-		case '<':
-		case ',':
-			farThreshold --;
-			if (farThreshold < 0) farThreshold = 0;
-			break;
-			
-		case '+':
-		case '=':
-			nearThreshold ++;
-			if (nearThreshold > 255) nearThreshold = 255;
-			break;
-			
-		case '-':
-			nearThreshold --;
-			if (nearThreshold < 0) nearThreshold = 0;
-			break;
-            
+
 		case 'w':
 			kinect1.enableDepthNearValueWhite(!kinect1.isDepthNearValueWhite());
 			break;

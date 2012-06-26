@@ -45,6 +45,8 @@ class testApp : public ofBaseApp{
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
     ofxKinect kinect1;
+    ofxCvGrayscaleImage cvGrayKin1ThreshNear;
+    ofxCvGrayscaleImage cvGrayKin1ThreshFar;
     ofxCvGrayscaleImage cvGrayKin1;
     ofxCvContourFinder  cvContKin1;
     
@@ -52,6 +54,8 @@ class testApp : public ofBaseApp{
 	
     ofxKinect kinect2;
     ofxCvGrayscaleImage cvGrayKin2;
+    ofxCvGrayscaleImage cvGrayKin2ThreshNear;
+    ofxCvGrayscaleImage cvGrayKin2ThreshFar;
     ofxCvContourFinder  cvContKin2;
 
 #endif
@@ -70,14 +74,14 @@ class testApp : public ofBaseApp{
 // --------------------------------------------
 
 // MARK: CONTROL VARIABLES
+    
+    int     iFarThreshold, iNearThreshold;
+    int     iMinBlobSize, iMaxNumBlobs;
+    float   fMaxBlobFraction;
 
     float fMaxDist;
     float fMinDist;
     
     int angle;
-    int farThreshold;
-    int nearThreshold;
-    
-    bool testBool;
     
 };
