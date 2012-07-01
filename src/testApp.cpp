@@ -5,6 +5,22 @@ void testApp::setup(){
     
     ofSetLogLevel(OF_LOG_VERBOSE);
     
+    for (int i = 0 ; i < 640 ; i++) {
+        norm640[i] = ofNormalize(i, 0, 640);
+    }
+    
+    for (int i = 0; i < 480; i++) {
+        norm480[i] = ofNormalize(i, 0, 480);
+    }
+    
+    for (int i = 0; i < 960; i++) {
+        norm960[i] = ofNormalize(i, 0, 960);
+    }
+    
+    for (int i = 0; i < 4000; i++) {
+        norm4000[i] = ofNormalize(i, 0, 4000);
+    }
+    
 // MARK: KINECT AND RELATED OBJECTS INITIALIZATION
     
     fKin1Angle = 0;
@@ -113,8 +129,8 @@ void testApp::update(){
                 blobIdx ++;
                 
                 // Centroid
-                blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].centroid.x, 0, 640)); // Centroid X
-                blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].centroid.y, 0, 480)); // Centroid Y
+                blobMessage.addFloatArg(norm960[(int)cvContKin1.blobs[i].centroid.x]); // Centroid X
+                blobMessage.addFloatArg(norm480[(int)cvContKin1.blobs[i].centroid.y]); // Centroid Y
                 
                 // TODO: Speed | Implement Blob Tracking
                 blobMessage.addFloatArg(0.0f); // Speed X
@@ -123,8 +139,8 @@ void testApp::update(){
                 // Points
                 if (cvContKin1.blobs[i].pts.size() > 0) {
                     for (int j = 0; j < cvContKin1.blobs[i].pts.size(); j++) {
-                        blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].pts[j].x, 0, 640)); // X coordinate
-                        blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].pts[j].y, 0, 480)); // Y coordinate
+                        blobMessage.addFloatArg(norm960[(int)cvContKin1.blobs[i].pts[j].x]); // X coordinate
+                        blobMessage.addFloatArg(norm480[(int)cvContKin1.blobs[i].pts[j].y]); // Y coordinate
                         blobMessage.addFloatArg(0.0f); // Z coordinate - just in case;
                     }
                 }
@@ -141,12 +157,11 @@ void testApp::update(){
             
             for (int x = 0; x < KIN_W-30; x+=30) {
                 for (int y = 0; y < KIN_H-30; y+=30) {
-                    cloudMessage.addFloatArg(ofNormalize(x, 0, KIN_W));
-                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
-                    cloudMessage.addFloatArg(ofNormalize(kinect1.getDistanceAt(x,y), 0, 4000));
+                    cloudMessage.addFloatArg(norm640[x]);
+                    cloudMessage.addFloatArg(norm480[y]);
+                    cloudMessage.addFloatArg(norm4000[(int)kinect1.getDistanceAt(x,y)]);
                 }
             }
-            
             oscSender.sendMessage(cloudMessage);
         }
         
@@ -184,8 +199,8 @@ void testApp::update(){
                 blobIdx++;
                 
                 // Centroid
-                blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].centroid.x, 0, 640));
-                blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].centroid.y, 0, 480));
+                blobMessage.addFloatArg(norm960[(int)cvContKin2.blobs[i].centroid.x + KIN2_INTERS_W]);
+                blobMessage.addFloatArg(norm480[(int)cvContKin2.blobs[i].centroid.y]);
                 
                 // TODO: Speed | Implement Blob Tracking
                 blobMessage.addFloatArg(0.0f);
@@ -194,8 +209,8 @@ void testApp::update(){
                 // Points
                 if (cvContKin2.blobs[i].pts.size() > 0) {
                     for (int j = 0; j < cvContKin2.blobs[i].pts.size(); j++) {
-                        blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].pts[j].x, 0, 640));
-                        blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].pts[j].y, 0, 480));
+                        blobMessage.addFloatArg(norm960[(int)cvContKin2.blobs[i].pts[j].x + KIN2_INTERS_W]);
+                        blobMessage.addFloatArg(norm480[(int)cvContKin2.blobs[i].pts[j].y]);
                         blobMessage.addFloatArg(0.0f);
                     }
                 }
@@ -214,20 +229,20 @@ void testApp::update(){
         for (int x = 0; x < OUTPUT_W - 30; x+= 30) {
             for (int y = 0; y < KIN_H - 30; y += 30) {
                 if (x <= KIN2_INTERS_W) {
-                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
-                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
+                    cloudMessage.addFloatArg(norm960[x]);
+                    cloudMessage.addFloatArg(norm480[y]);
                     cloudMessage.addFloatArg(ofNormalize(kinect1.getDistanceAt(x,y), 0, 4000));
                 }
                 else if (x > KIN2_INTERS_W && x <= KIN_W) {
-                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
-                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
-                    float minDist = kinect1.getDistanceAt(x, y) < kinect2.getDistanceAt(x - KIN2_INTERS_W, y) ? kinect1.getDistanceAt(x, y) : kinect2.getDistanceAt(x - KIN2_INTERS_W, y);
-                    cloudMessage.addFloatArg(ofNormalize(minDist, 0, 4000));
+                    cloudMessage.addFloatArg(norm960[x]);
+                    cloudMessage.addFloatArg(norm480[y]);
+                    int minDist = kinect1.getDistanceAt(x, y) < kinect2.getDistanceAt(x - KIN2_INTERS_W, y) ? kinect1.getDistanceAt(x, y) : kinect2.getDistanceAt(x - KIN2_INTERS_W, y);
+                    cloudMessage.addFloatArg(norm4000[minDist]);
                 }
                 else if (x > KIN2_INTERS_W) {
-                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
-                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
-                    cloudMessage.addFloatArg(ofNormalize(kinect2.getDistanceAt(x - KIN2_INTERS_W, y), 0, KIN_W));
+                    cloudMessage.addFloatArg(ofNormalize(norm960[x]);
+                    cloudMessage.addFloatArg(norm480[y]);
+                    cloudMessage.addFloatArg(norm4000[(int)kinect2.getDistanceAt(x - KIN2_INTERS_W, y)]);
                 }
             }
         }

@@ -8,7 +8,7 @@
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
-#define USE_TWO_KINECTS
+//#define USE_TWO_KINECTS
 
 #define KIN_W 640
 #define KIN_H 480
@@ -101,5 +101,10 @@ class testApp : public ofBaseApp{
     float fKin1Angle, fKin2Angle;
     
     int   numPix;
+    
+    float norm960[960];
+    float norm640[640];
+    float norm480[480];
+    float norm4000[4000];
     
 };
