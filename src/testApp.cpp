@@ -7,19 +7,37 @@ void testApp::setup(){
     
 // MARK: KINECT AND RELATED OBJECTS INITIALIZATION
     
+    fKin1Angle = 0;
+    
     kinect1.init(false, false);
 	kinect1.open(0);
+    kinect1.setCameraTiltAngle(fKin1Angle);
     cvGrayKin1ThreshNear.allocate(640, 480);
     cvGrayKin1ThreshFar.allocate(640, 480);
     cvGrayKin1.allocate(640, 480);
 	
+    
 #ifdef USE_TWO_KINECTS
+    
+    fKin2Angle = 0;
+    
 	kinect2.init(false, false);
 	kinect2.open(1);
+    kinect2.setCameraTiltAngle(fKin2Angle);
     cvGrayKin2ThreshNear.allocate(640, 480);
     cvGrayKin2ThreshFar.allocate(640, 480);
     cvGrayKin2.allocate(640, 480);
+    
 #endif
+    
+    
+    
+// --------------------------------------------
+
+// MARK: COMMUNICATION SETUP
+    
+    oscSender.setup(HOST, PORT);
+    bSendMessages = false;
     
 // --------------------------------------------
 
@@ -51,17 +69,10 @@ void testApp::setup(){
     gui.addSlider("Min Blob Size", iMinBlobSize, 0, 40000);
     gui.addSlider("Max Blob Fraction of Img", fMaxBlobFraction, 1.0, 20.0);
     gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
+    gui.addToggle("Send Messages", bSendMessages);
     gui.show();
     
 // --------------------------------------------
-	
-
-    
-    // zero the tilt on startup
-	angle = 0;
-	kinect1.setCameraTiltAngle(angle);
-
-
     
 }
 
@@ -69,27 +80,86 @@ void testApp::setup(){
 void testApp::update(){
     
     ofBackground(100, 100, 100);
+    
+    int blobIdx = 0;
 	
-	kinect1.update();
+    ofxOscBundle bundle;
+    
+    kinect1.update();
     
     if (kinect1.isFrameNew()) {
+        
         cvGrayKin1.setFromPixels(kinect1.getDepthPixels(), kinect1.width, kinect1.height);
             
-            cvGrayKin1ThreshNear    = cvGrayKin1;
-            cvGrayKin1ThreshFar     = cvGrayKin1;
-			
-            cvGrayKin1ThreshNear.threshold(255 - iNearThreshold, true);
-			cvGrayKin1ThreshFar.threshold(255 - iFarThreshold);
-			cvAnd(cvGrayKin1ThreshNear.getCvImage(), cvGrayKin1ThreshFar.getCvImage(), cvGrayKin1.getCvImage(), NULL);
+        cvGrayKin1ThreshNear    = cvGrayKin1;
+        cvGrayKin1ThreshFar     = cvGrayKin1;
+        
+        cvGrayKin1ThreshNear.threshold(255 - iNearThreshold, true);
+        cvGrayKin1ThreshFar.threshold(255 - iFarThreshold);
+        cvAnd(cvGrayKin1ThreshNear.getCvImage(), cvGrayKin1ThreshFar.getCvImage(), cvGrayKin1.getCvImage(), NULL);
         
         cvGrayKin1.flagImageChanged();
         cvContKin1.findContours(cvGrayKin1, iMinBlobSize, (kinect1.width*kinect1.height)/fMaxBlobFraction, iMaxNumBlobs, false);
+        
+        if (cvContKin1.blobs.size() > 0 && bSendMessages) {
+            
+            for (int i = 0; i < cvContKin1.blobs.size(); i++) {
+                
+                ofxOscMessage blobMessage;
+                blobMessage.setAddress("/blob");
+                
+                // Index
+                blobMessage.addIntArg(blobIdx); // Index
+                blobIdx ++;
+                
+                // Centroid
+                blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].centroid.x, 0, 640)); // Centroid X
+                blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].centroid.y, 0, 480)); // Centroid Y
+                
+                // TODO: Speed | Implement Blob Tracking
+                blobMessage.addFloatArg(0.0f); // Speed X
+                blobMessage.addFloatArg(0.0f); // Speed Y
+                
+                // Points
+                if (cvContKin1.blobs[i].pts.size() > 0) {
+                    for (int j = 0; j < cvContKin1.blobs[i].pts.size(); j++) {
+                        blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].pts[j].x, 0, 640)); // X coordinate
+                        blobMessage.addFloatArg(ofNormalize(cvContKin1.blobs[i].pts[j].y, 0, 480)); // Y coordinate
+                        blobMessage.addFloatArg(0.0f); // Z coordinate - just in case;
+                    }
+                }
+                oscSender.sendMessage(blobMessage);
+                blobMessage.clear();
+            }
+        }
+        
+#ifndef USE_TWO_KINECTS
+        if (bSendMessages) {
+            ofxOscMessage cloudMessage;
+            
+            cloudMessage.setAddress("/cloud");
+            
+            for (int x = 0; x < KIN_W-30; x+=30) {
+                for (int y = 0; y < KIN_H-30; y+=30) {
+                    cloudMessage.addFloatArg(ofNormalize(x, 0, KIN_W));
+                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
+                    cloudMessage.addFloatArg(ofNormalize(kinect1.getDistanceAt(x,y), 0, 4000));
+                }
+            }
+            
+            oscSender.sendMessage(cloudMessage);
+        }
+        
+#endif
+        
     }
     
 #ifdef USE_TWO_KINECTS
+    
 	kinect2.update();
     
     if (kinect2.isFrameNew()) {
+        
         cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
         
         cvGrayKin2ThreshNear    = cvGrayKin2;
@@ -101,6 +171,68 @@ void testApp::update(){
         
         cvGrayKin2.flagImageChanged();
         cvContKin2.findContours(cvGrayKin2, iMinBlobSize, (kinect1.width*kinect1.height)/fMaxBlobFraction, iMaxNumBlobs, false);
+        
+        if (cvContKin2.blobs.size() > 0 && bSendMessages) {
+            
+            for (int i = 0; i < cvContKin2.blobs.size(); i++) {
+                
+                ofxOscMessage blobMessage;
+                blobMessage.setAddress("/blob");
+                
+                // Index
+                blobMessage.addIntArg(blobIdx);
+                blobIdx++;
+                
+                // Centroid
+                blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].centroid.x, 0, 640));
+                blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].centroid.y, 0, 480));
+                
+                // TODO: Speed | Implement Blob Tracking
+                blobMessage.addFloatArg(0.0f);
+                blobMessage.addFloatArg(0.0f);
+                
+                // Points
+                if (cvContKin2.blobs[i].pts.size() > 0) {
+                    for (int j = 0; j < cvContKin2.blobs[i].pts.size(); j++) {
+                        blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].pts[j].x, 0, 640));
+                        blobMessage.addFloatArg(ofNormalize(cvContKin2.blobs[i].pts[j].y, 0, 480));
+                        blobMessage.addFloatArg(0.0f);
+                    }
+                }
+                oscSender.sendMessage(blobMessage);
+                blobMessage.clear();
+            }
+        }
+    }
+    
+    if (bSendMessages) {
+        
+        ofxOscMessage cloudMessage;
+        
+        cloudMessage.setAddress("/cloud");
+        
+        for (int x = 0; x < OUTPUT_W - 30; x+= 30) {
+            for (int y = 0; y < KIN_H - 30; y += 30) {
+                if (x <= KIN2_INTERS_W) {
+                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
+                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
+                    cloudMessage.addFloatArg(ofNormalize(kinect1.getDistanceAt(x,y), 0, 4000));
+                }
+                else if (x > KIN2_INTERS_W && x <= KIN_W) {
+                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
+                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
+                    float minDist = kinect1.getDistanceAt(x, y) < kinect2.getDistanceAt(x - KIN2_INTERS_W, y) ? kinect1.getDistanceAt(x, y) : kinect2.getDistanceAt(x - KIN2_INTERS_W, y);
+                    cloudMessage.addFloatArg(ofNormalize(minDist, 0, 4000));
+                }
+                else if (x > KIN2_INTERS_W) {
+                    cloudMessage.addFloatArg(ofNormalize(x, 0, OUTPUT_W));
+                    cloudMessage.addFloatArg(ofNormalize(y, 0, KIN_H));
+                    cloudMessage.addFloatArg(ofNormalize(kinect2.getDistanceAt(x - KIN2_INTERS_W, y), 0, KIN_W));
+                }
+            }
+        }
+        oscSender.sendMessage(cloudMessage);
+        cloudMessage.clear();
     }
     
 #endif
@@ -122,6 +254,7 @@ void testApp::draw(){
     ofRect(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
     
 #ifdef USE_TWO_KINECTS
+    
     kinect2.drawDepth(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
     ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
     ofDrawBitmapString("Kinect 2", iLeftMargin + iDrawWidth + 25, iTopMargin + 15);
@@ -138,45 +271,24 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::exit() {
+
 	kinect1.setCameraTiltAngle(0); // zero the tilt on exit
 	kinect1.close();
 	
 #ifdef USE_TWO_KINECTS
+    
+    kinect2.setCameraTiltAngle(0);
 	kinect2.close();
+
 #endif
+
 }
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
     
     switch (key) {
-            
 
-		case 'w':
-			kinect1.enableDepthNearValueWhite(!kinect1.isDepthNearValueWhite());
-			break;
-			
-		case 'o':
-			kinect1.setCameraTiltAngle(angle); // go back to prev tilt
-			kinect1.open();
-			break;
-			
-		case 'c':
-			kinect1.setCameraTiltAngle(0); // zero the tilt
-			kinect1.close();
-			break;
-			
-		case OF_KEY_UP:
-			angle++;
-			if(angle>30) angle=30;
-			kinect1.setCameraTiltAngle(angle);
-			break;
-			
-		case OF_KEY_DOWN:
-			angle--;
-			if(angle<-30) angle=-30;
-			kinect1.setCameraTiltAngle(angle);
-			break;
 	}
 
 

@@ -4,10 +4,19 @@
 #include "ofxOpenCv.h"
 #include "ofxKinect.h"
 #include "ofxSimpleGuiToo.h"
+#include "ofxOsc.h"
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
 #define USE_TWO_KINECTS
+
+#define KIN_W 640
+#define KIN_H 480
+#define KIN2_INTERS_W 320
+#define OUTPUT_W 960
+
+#define HOST "localhost"
+#define PORT 12345
 
 // ---------------------------------------------
 
@@ -61,6 +70,13 @@ class testApp : public ofBaseApp{
 #endif
     
 // --------------------------------------------
+
+// MARK: COMMUNICATION OBJECTS AND VARIABLES
+
+    ofxOscSender oscSender;
+    bool bSendMessages;
+    
+// --------------------------------------------
     
 // MARK: INTERFACE VARIABLES
 
@@ -82,6 +98,8 @@ class testApp : public ofBaseApp{
     float fMaxDist;
     float fMinDist;
     
-    int angle;
+    float fKin1Angle, fKin2Angle;
+    
+    int   numPix;
     
 };
