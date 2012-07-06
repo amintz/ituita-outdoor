@@ -8,7 +8,7 @@
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
-//#define USE_TWO_KINECTS
+#define USE_TWO_KINECTS
 
 #define KIN_W 640
 #define KIN_H 480

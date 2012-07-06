@@ -155,8 +155,8 @@ void testApp::update(){
             
             cloudMessage.setAddress("/cloud");
             
-            for (int x = 0; x < KIN_W-30; x+=30) {
-                for (int y = 0; y < KIN_H-30; y+=30) {
+            for (int x = 0; x < KIN_W; x++) {
+                for (int y = 0; y < KIN_H; y++) {
                     cloudMessage.addFloatArg(norm640[x]);
                     cloudMessage.addFloatArg(norm480[y]);
                     cloudMessage.addFloatArg(norm4000[(int)kinect1.getDistanceAt(x,y)]);
@@ -240,7 +240,7 @@ void testApp::update(){
                     cloudMessage.addFloatArg(norm4000[minDist]);
                 }
                 else if (x > KIN2_INTERS_W) {
-                    cloudMessage.addFloatArg(ofNormalize(norm960[x]);
+                    cloudMessage.addFloatArg(norm960[x]);
                     cloudMessage.addFloatArg(norm480[y]);
                     cloudMessage.addFloatArg(norm4000[(int)kinect2.getDistanceAt(x - KIN2_INTERS_W, y)]);
                 }
