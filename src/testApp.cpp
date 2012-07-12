@@ -23,7 +23,7 @@ void testApp::setup(){
     
 #ifndef USE_TWO_KINECTS
     
-    kinect.setup();
+    kinect.setup(false);
     
 #endif
     
@@ -98,10 +98,14 @@ void testApp::draw(){
         kinect.drawThreshImg(iLeftMargin, iTopMargin, 640, 480);
         kinect.drawThreshImg(iLeftMargin + 320, iTopMargin, 640, 480, true);
         kinect.drawNormBlobs(iLeftMargin, iTopMargin, 960, 480);
+        ofSetColor(255, 255, 255);
+        ofDrawBitmapString("Blobs drawn from normalized blobs", iLeftMargin, iTopMargin + 500);
     }
     
     else if(iMode == 2) {
         kinect.drawDepthFromCloud(iLeftMargin, iTopMargin, 960, 480);
+        ofSetColor(255, 255, 255);
+        ofDrawBitmapString("Depth map drawn from normalized point cloud", iLeftMargin, iTopMargin + 500);
     }
     
     gui.draw();

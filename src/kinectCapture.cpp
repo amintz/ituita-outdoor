@@ -89,6 +89,7 @@ void kinectCapture::setup(bool _bTwoKinects) {
         cvGrayKin2ThreshFar.allocate(640, 480);
         cvGrayKin2.allocate(640, 480);
         
+        bKinectsStarted = false;
         bKin2Refreshed = false;
     
     }
@@ -102,6 +103,18 @@ void kinectCapture::setup(bool _bTwoKinects) {
 }
 
 void kinectCapture::update() {
+    
+    if(bTwoKinects && !bKinectsStarted) {
+        kinect1.update();
+        kinect2.update();
+        if (kinect1.isFrameNew() && kinect2.isFrameNew()) {
+            bKinectsStarted = true;
+            return;
+        }
+        else {
+            return;
+        }
+    }
     
     kinect1.update();
     bKin1Refreshed = false;
@@ -237,7 +250,7 @@ void kinectCapture::update() {
             // DO: ASSIGN NEW CLOUD TO <POINT CLOUD>
             
             pointCloud.clear();
-            
+                     
             for (int x = 0; x < OUTPUT_W; x++) {
                 for (int y = 0; y < KIN_H; y++) {
                     if (x <= KIN2_INTERS_W) {
@@ -278,7 +291,7 @@ void kinectCapture::update() {
             
             for (int x = 0; x < KIN_W; x++) {
                 for (int y = 0; y < KIN_H; y++) {
-                    pointCloud.push_back(ofPoint(normWidth(x, false), normHeight(y), normDepth((int)kinect1.getDistanceAt(x,y))));
+                    pointCloud.push_back(ofPoint(normWidth(x), normHeight(y), normDepth((int)kinect1.getDistanceAt(x,y))));
                 }
             }
             
@@ -339,12 +352,12 @@ void kinectCapture::drawNormBlobs(int x, int y, int w, int h){
     
     ofPushMatrix();
     ofTranslate(x, y);
-    ofSetColor(255, 0, 0);
+    ofSetColor(0, 255, 0);
     
     for (int i = 0; i < foundBlobs.size(); i++) {
         ofBeginShape();
         for (int j = 0; j < foundBlobs[i].pts.size(); j++) {
-            ofVertex(foundBlobs[i].pts[j].x * w, foundBlobs[i].pts[j].y * h);
+            ofVertex(foundBlobs[i].pts[j].x * (float)w, foundBlobs[i].pts[j].y * (float)h);
         }
         ofEndShape();
     }

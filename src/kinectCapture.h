@@ -65,6 +65,7 @@ class kinectCapture {
     
     bool bTwoKinects;
     
+    bool bKinectsStarted;
     bool bKin1Refreshed, bKin2Refreshed;
     
     int     iFarThreshold, iNearThreshold;
