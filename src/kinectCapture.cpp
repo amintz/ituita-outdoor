@@ -54,12 +54,15 @@ void kinectCapture::setup(bool _bTwoKinects) {
         kinect1.close();
         kinect1.init(false, false);
         success = kinect1.open(0);
+        counter++;
     }
     
     kinect1.setCameraTiltAngle(fKin1Angle);
     cvGrayKin1ThreshNear.allocate(640, 480);
     cvGrayKin1ThreshFar.allocate(640, 480);
     cvGrayKin1.allocate(640, 480);
+    
+    bKin1Refreshed = false;
     
     //IF USING TWO KINECTS, SETUP KINECT TWO
 	
@@ -78,12 +81,15 @@ void kinectCapture::setup(bool _bTwoKinects) {
             kinect2.close();
             kinect2.init(false, false);
             success = kinect2.open(1);
+            counter++;
         }
         
         kinect2.setCameraTiltAngle(fKin2Angle);
         cvGrayKin2ThreshNear.allocate(640, 480);
         cvGrayKin2ThreshFar.allocate(640, 480);
         cvGrayKin2.allocate(640, 480);
+        
+        bKin2Refreshed = false;
     
     }
     
@@ -98,10 +104,13 @@ void kinectCapture::setup(bool _bTwoKinects) {
 void kinectCapture::update() {
     
     kinect1.update();
+    bKin1Refreshed = false;
     
     // IF KINECT ONE FRAME IS NEW ---------------------------------
     
     if (kinect1.isFrameNew()) {
+        
+        bKin1Refreshed = true;
         
         // DO: UPDATE ALL CV STUFF
         
@@ -157,10 +166,13 @@ void kinectCapture::update() {
     if (bTwoKinects) {
         
         kinect2.update();
+        bKin2Refreshed = false;
         
         // IF KINECT TWO FRAME IS NEW -----------------------------
         
         if (kinect2.isFrameNew()) {
+            
+            bKin2Refreshed = true;
             
             // DO: UPDATE ALL CV STUFF
             
@@ -214,7 +226,7 @@ void kinectCapture::update() {
         
         // IF EITHER KINECT FRAME IS NEW --------------------------
         
-        if (kinect1.isFrameNew() || kinect2.isFrameNew()) {
+        if (bKin1Refreshed || bKin2Refreshed) {
             
             // DO: ASSIGN NEW BLOBS TO <FOUND BLOBS>
             
@@ -226,8 +238,8 @@ void kinectCapture::update() {
             
             pointCloud.clear();
             
-            for (int x = 0; x < OUTPUT_W - 30; x+= 30) {
-                for (int y = 0; y < KIN_H - 30; y += 30) {
+            for (int x = 0; x < OUTPUT_W; x++) {
+                for (int y = 0; y < KIN_H; y++) {
                     if (x <= KIN2_INTERS_W) {
                         pointCloud.push_back(ofPoint(normWidth(x, true), normHeight(y), normDepth((int)kinect1.getDistanceAt(x, y))));
                     }
@@ -253,7 +265,7 @@ void kinectCapture::update() {
         
         // IF KINECT ONE FRAME IS NEW
         
-        if (kinect1.isFrameNew()) {
+        if (bKin1Refreshed) {
             
             // DO: ASSIGN NEW BLOBS TO <FOUND BLOBS>
             
@@ -320,6 +332,40 @@ void kinectCapture::drawContour(int x, int y, int w, int h, bool kin2) {
     else if(bTwoKinects) {
         cvContKin2.draw(x, y, w, h);
     }
+    
+}
+
+void kinectCapture::drawNormBlobs(int x, int y, int w, int h){
+    
+    ofPushMatrix();
+    ofTranslate(x, y);
+    ofSetColor(255, 0, 0);
+    
+    for (int i = 0; i < foundBlobs.size(); i++) {
+        ofBeginShape();
+        for (int j = 0; j < foundBlobs[i].pts.size(); j++) {
+            ofVertex(foundBlobs[i].pts[j].x * w, foundBlobs[i].pts[j].y * h);
+        }
+        ofEndShape();
+    }
+    
+    ofPopMatrix();
+    
+}
+
+void kinectCapture::drawDepthFromCloud(int x, int y, int w, int h) {
+    
+    ofPushMatrix();
+    ofTranslate(x,y);
+    
+    cout<< "Num Pontos: "<< pointCloud.size() << endl;
+    
+    for (int i = 0; i < pointCloud.size(); i++) {
+        ofSetColor(pointCloud[i].z * (float)255);
+        ofCircle(pointCloud[i].x * (float)w, pointCloud[i].y * (float)h, 1);
+    }
+    
+    ofPopMatrix();
     
 }
 

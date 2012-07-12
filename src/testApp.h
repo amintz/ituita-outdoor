@@ -31,8 +31,6 @@ class testApp : public ofBaseApp{
 		void update();
 		void draw();
         void exit();
-    
-        void drawPointCloud();
 		
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -90,6 +88,8 @@ class testApp : public ofBaseApp{
     
     int     iDrawWidth, iDrawHeight;
     int     iTopMargin, iLeftMargin;
+    
+    int     iMode;
     
 // --------------------------------------------
 

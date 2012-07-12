@@ -31,6 +31,8 @@ class kinectCapture {
     void drawDepth(int x, int y, int w, int h, bool kin2 = false);
     void drawThreshImg(int x, int y, int w, int h, bool kin2 = false);
     void drawContour(int x, int y, int w, int h, bool kin2 = false);
+    void drawNormBlobs(int x, int y, int w, int h);
+    void drawDepthFromCloud(int x, int y, int w, int h);
     void close();
     
     vector<ofxCvBlob> foundBlobs;
@@ -62,6 +64,8 @@ class kinectCapture {
     // MARK: CONTROL VARIABLES
     
     bool bTwoKinects;
+    
+    bool bKin1Refreshed, bKin2Refreshed;
     
     int     iFarThreshold, iNearThreshold;
     int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
