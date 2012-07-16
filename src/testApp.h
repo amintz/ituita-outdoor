@@ -33,35 +33,40 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
 // --------------------------------------------
-    
 // MARK: GRAPHIC INTERFACE DECLARATION
-    
-   ofxSimpleGuiToo gui;
+   
+        void            drawGUI();
+        ofxSimpleGuiToo gui;
+        bool            isGUIActive;
 
 // --------------------------------------------
-    
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
-    kinectCapture kinect;
+        kinectCapture kinect;
     
 // --------------------------------------------
-   
 // MARK: INTERFACE VARIABLES
 
-    bool    bDrawDepthMap;
-    bool    bDrawThreshold;
-    bool    bDrawBlobs;
-    
-    int     iDrawWidth, iDrawHeight;
-    int     iTopMargin, iLeftMargin;
-    
-    int     iMode;
+        bool    bDrawDepthMap;
+        bool    bDrawThreshold;
+        bool    bDrawBlobs;
+        
+        int     iDrawWidth, iDrawHeight;
+        int     iTopMargin, iLeftMargin;
+        
+        int     iMode;
     
 // --------------------------------------------
-
 // MARK: CONTROL VARIABLES
 
-    int     iFarThreshold, iNearThreshold;
-    int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
+        int     iFarThreshold, iNearThreshold;
+        int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
+    
+// --------------------------------------------
+// MARK: SHADER
+        
+        ofShader shader;
+        bool    isFilterActive;
+        int     ledRatio;
 
 };

@@ -50,14 +50,24 @@ void testApp::setup(){
     gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
     gui.show();
     
+    isGUIActive = false;
+    
 // --------------------------------------------
+    
+    shader.load("shaders/led.vert", "shaders/led.frag");
+    isFilterActive = true;
+    ledRatio = 4;
+    
+// --------------------------------------------
+        
+        
     
 }
 
 //--------------------------------------------------------------
 void testApp::update(){
     
-    ofBackground(100, 100, 100);
+    ofBackground(0);
     
     kinect.updateThreshPar(iFarThreshold, iNearThreshold);
     kinect.updateBlobPar(iMinBlobSize, iMaxBlobSize, iMaxNumBlobs);
@@ -67,6 +77,36 @@ void testApp::update(){
 
 //--------------------------------------------------------------
 void testApp::draw(){
+
+    ofSetColor(255, 255, 255);
+    ofFill();
+
+    if(isFilterActive) {
+        shader.begin();
+        shader.setUniform1i("u_ratio", ledRatio);
+    }
+
+    ofRect(100, 100, ofGetWidth()-200, ofGetHeight()-200);
+    
+    
+    if(isFilterActive) {        
+        shader.end();
+    }
+    
+    if(isGUIActive) {
+        drawGUI();
+    }
+    
+}
+
+//--------------------------------------------------------------
+void testApp::drawGUI() {
+    
+    ofEnableAlphaBlending();
+    ofSetColor(0, 0, 0, 127);
+    ofFill();
+    ofRect(0, 0, ofGetWidth(), ofGetHeight());
+    ofDisableAlphaBlending();
     
     ofSetColor(255, 255, 255);
     ofNoFill();
@@ -80,7 +120,7 @@ void testApp::draw(){
         kinect.drawContour(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
         ofRect(iLeftMargin, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
         
-    #ifdef USE_TWO_KINECTS
+#ifdef USE_TWO_KINECTS
         
         kinect.drawDepth(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight, true);
         ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin, iDrawWidth, iDrawHeight);
@@ -89,9 +129,9 @@ void testApp::draw(){
         kinect.drawThreshImg(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight, true);
         kinect.drawContour(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight, true);
         ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
-    
-    #endif
-    
+        
+#endif
+        
     }
     
     else if(iMode == 1) {
@@ -109,7 +149,6 @@ void testApp::draw(){
     }
     
     gui.draw();
-    
 }
 
 //--------------------------------------------------------------
@@ -121,11 +160,12 @@ void testApp::exit() {
 
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
-    
-    switch (key) {
 
-	}
-
+    if(key == 'g' || key == 'G') {
+        isGUIActive = !isGUIActive;
+	} else if(key == 'f' || key =='F') {
+        isFilterActive = !isFilterActive;
+    }
 
 }
 
