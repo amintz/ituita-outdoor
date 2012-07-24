@@ -2,8 +2,7 @@
 //  ituitaBlobTracker.h
 //  ituita-outdoor
 //
-//  Created by André Goes Mintz on 7/16/12.
-//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//  Adapted from ofxBlobTracker, by Ramsin Khoshabeh and Patricio Gonzalez Vivo
 //
 
 #ifndef ituita_outdoor_ituitaBlobTracker_h
