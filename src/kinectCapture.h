@@ -9,7 +9,8 @@
 #ifndef ituita_outdoor_kinectCapture_h
 #define ituita_outdoor_kinectCapture_h
 
-#include "ofxOpenCv.h"
+//#include "ofxOpenCv.h"
+#include "ituitaBlobTracker.h"
 #include "ofxKinect.h"
 
 #define KIN_W 640
@@ -35,31 +36,36 @@ class kinectCapture {
     void drawDepthFromCloud(int x, int y, int w, int h);
     void close();
     
-    vector<ofxCvBlob> foundBlobs;
-    vector<ofxCvBlob> kin1FoundBlobs;
-    vector<ofxCvBlob> kin2FoundBlobs;
+    vector<ofxBlob> foundBlobs;
+    vector<ofxBlob> kin1FoundBlobs;
+    vector<ofxBlob> kin2FoundBlobs;
     vector<ofPoint> pointCloud;
+    
+    ituitaBlobTracker   kin1BlobTracker, kin2BlobTracker;
     
     
     private:
     
-    float normWidth(int val, bool _bTwoKinects = false);
+    
+    float normWidth(int val, bool _bTwoKinects = true);
     float normHeight(int val);
     float normDepth(int val);
+    
+    float setInRangeWidth(float val, bool _bTwoKinects = true, bool isKinect2 = false);
     
     // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
     ofxKinect kinect1;
-    ofxCvGrayscaleImage cvGrayKin1ThreshNear;
-    ofxCvGrayscaleImage cvGrayKin1ThreshFar;
+//    ofxCvGrayscaleImage cvGrayKin1ThreshNear;
+//    ofxCvGrayscaleImage cvGrayKin1ThreshFar;
     ofxCvGrayscaleImage cvGrayKin1;
-    ofxCvContourFinder  cvContKin1;
+//    ofxCvContourFinder  cvContKin1;
 	
     ofxKinect kinect2;
     ofxCvGrayscaleImage cvGrayKin2;
-    ofxCvGrayscaleImage cvGrayKin2ThreshNear;
-    ofxCvGrayscaleImage cvGrayKin2ThreshFar;
-    ofxCvContourFinder  cvContKin2;
+//    ofxCvGrayscaleImage cvGrayKin2ThreshNear;
+//    ofxCvGrayscaleImage cvGrayKin2ThreshFar;
+//    ofxCvContourFinder  cvContKin2;
     
     // MARK: CONTROL VARIABLES
     

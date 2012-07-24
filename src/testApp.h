@@ -3,10 +3,11 @@
 #include "ofMain.h"
 #include "ofxSimpleGuiToo.h"
 #include "kinectCapture.h"
+#include "ituitaBlobTracker.h"
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
-//#define USE_TWO_KINECTS
+#define USE_TWO_KINECTS
 
 
 // ---------------------------------------------
@@ -43,6 +44,7 @@ class testApp : public ofBaseApp{
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
     kinectCapture kinect;
+    //ituitaBlobTracker blobTracker;
     
 // --------------------------------------------
    

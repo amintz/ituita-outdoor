@@ -58,8 +58,6 @@ void kinectCapture::setup(bool _bTwoKinects) {
     }
     
     kinect1.setCameraTiltAngle(fKin1Angle);
-    cvGrayKin1ThreshNear.allocate(640, 480);
-    cvGrayKin1ThreshFar.allocate(640, 480);
     cvGrayKin1.allocate(640, 480);
     
     bKin1Refreshed = false;
@@ -85,8 +83,6 @@ void kinectCapture::setup(bool _bTwoKinects) {
         }
         
         kinect2.setCameraTiltAngle(fKin2Angle);
-        cvGrayKin2ThreshNear.allocate(640, 480);
-        cvGrayKin2ThreshFar.allocate(640, 480);
         cvGrayKin2.allocate(640, 480);
         
         bKinectsStarted = false;
@@ -129,44 +125,40 @@ void kinectCapture::update() {
         
         cvGrayKin1.setFromPixels(kinect1.getDepthPixels(), kinect1.width, kinect1.height);
         
-        cvGrayKin1ThreshNear    = cvGrayKin1;
-        cvGrayKin1ThreshFar     = cvGrayKin1;
-        
-        cvGrayKin1ThreshNear.threshold(255 - iNearThreshold, true);
-        cvGrayKin1ThreshFar.threshold(255 - iFarThreshold);
-        cvAnd(cvGrayKin1ThreshNear.getCvImage(), cvGrayKin1ThreshFar.getCvImage(), cvGrayKin1.getCvImage(), NULL);
-        
-        cvGrayKin1.flagImageChanged();
-        cvContKin1.findContours(cvGrayKin1, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, false);
+        kin1BlobTracker.update(cvGrayKin1, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
         
         kin1FoundBlobs.clear();
         
         // IF THERE ARE BLOBS -------------------------------------
         
-        if (cvContKin1.blobs.size() > 0) {
-            
-            // DO: UPDATE ALL BLOB STUFF
-            
-            for (int i = 0; i < cvContKin1.blobs.size(); i++) {
-                if(cvContKin1.blobs[i].pts.size() > 0) {
-                    
-                    kin1FoundBlobs.push_back(ofxCvBlob());
-                    
-                    ofxCvBlob newBlob = cvContKin1.blobs[i];
-                    
-                    kin1FoundBlobs[i].centroid.x = normWidth((int)cvContKin1.blobs[i].centroid.x, bTwoKinects);
-                    kin1FoundBlobs[i].centroid.y = normHeight((int)cvContKin1.blobs[i].centroid.y);
-                    kin1FoundBlobs[i].boundingRect.x = normWidth((int)cvContKin1.blobs[i].boundingRect.x, bTwoKinects);
-                    kin1FoundBlobs[i].boundingRect.y = normHeight((int)cvContKin1.blobs[i].boundingRect.y);
-                    kin1FoundBlobs[i].boundingRect.width = normWidth((int)cvContKin1.blobs[i].boundingRect.width, bTwoKinects);
-                    kin1FoundBlobs[i].boundingRect.height = normHeight((int)cvContKin1.blobs[i].boundingRect.height);
-                    
-                    for (int j = 0; j < cvContKin1.blobs[i].pts.size(); j++) {
-                        kin1FoundBlobs[i].pts.push_back(ofPoint(normWidth((int)cvContKin1.blobs[i].pts[j].x, bTwoKinects),normHeight((int)cvContKin1.blobs[i].pts[j].y)));
-                    }
-                }
-            }
-        }
+        if (kin1BlobTracker.size() > 0) {
+         
+         // DO: UPDATE ALL BLOB STUFF
+         
+             for (int i = 0; i < kin1BlobTracker.trackedBlobs.size(); i++) {
+                 if(kin1BlobTracker.trackedBlobs[i].pts.size() > 0) {
+             
+                     kin1FoundBlobs.push_back(ofxBlob());
+             
+                     kin1FoundBlobs[i].id = kin1BlobTracker.trackedBlobs[i].id;
+                     
+                     kin1FoundBlobs[i].angle = kin1BlobTracker.trackedBlobs[i].angle;
+                     kin1FoundBlobs[i].maccel = kin1BlobTracker.trackedBlobs[i].maccel;
+             
+                     kin1FoundBlobs[i].centroid.x = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].centroid.x, bTwoKinects, false);
+                     kin1FoundBlobs[i].centroid.y = kin1BlobTracker.trackedBlobs[i].centroid.y;
+                     kin1FoundBlobs[i].boundingRect.x = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].boundingRect.x, bTwoKinects, false);
+                     kin1FoundBlobs[i].boundingRect.y = kin1BlobTracker.trackedBlobs[i].boundingRect.y;
+                     kin1FoundBlobs[i].boundingRect.width = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].boundingRect.width, bTwoKinects, false);
+                     kin1FoundBlobs[i].boundingRect.height =kin1BlobTracker.trackedBlobs[i].boundingRect.height;
+                     
+             
+                     for (int j = 0; j < kin1BlobTracker.trackedBlobs[i].pts.size(); j++) {
+                         kin1FoundBlobs[i].pts.push_back(ofPoint(setInRangeWidth(kin1BlobTracker.trackedBlobs[i].pts[j].x, bTwoKinects, false),kin1BlobTracker.trackedBlobs[i].pts[j].y));
+                     }
+                 }
+             }
+         }
         
         // END IF THERE ARE BLOBS ---------------------------------
         
@@ -189,43 +181,39 @@ void kinectCapture::update() {
             
             // DO: UPDATE ALL CV STUFF
             
-            cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
+           cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
             
-            cvGrayKin2ThreshNear    = cvGrayKin2;
-            cvGrayKin2ThreshFar     = cvGrayKin2;
-            
-            cvGrayKin2ThreshNear.threshold(255 - iNearThreshold, true);
-            cvGrayKin2ThreshFar.threshold(255 - iFarThreshold);
-            cvAnd(cvGrayKin2ThreshNear.getCvImage(), cvGrayKin2ThreshFar.getCvImage(), cvGrayKin2.getCvImage(), NULL);
-            
-            cvGrayKin2.flagImageChanged();
-            cvContKin2.findContours(cvGrayKin2, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, false);
+            kin2BlobTracker.update(cvGrayKin2, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);            
             
             kin2FoundBlobs.clear();
             
             // IF THERE ARE BLOBS ---------------------------------
             
-            if (cvContKin2.blobs.size() > 0) {
-            
+            if (kin2BlobTracker.size() > 0) {
+                
                 // DO: UPDATE ALL BLOB STUFF
                 
-                for (int i = 0; i < cvContKin2.blobs.size(); i++) {
-                    
-                    if(cvContKin2.blobs[i].pts.size() > 0) {
+                for (int i = 0; i < kin2BlobTracker.trackedBlobs.size(); i++) {
+                    if(kin2BlobTracker.trackedBlobs[i].pts.size() > 0) {
                         
-                        kin2FoundBlobs.push_back(ofxCvBlob());
+                        kin2FoundBlobs.push_back(ofxBlob());
                         
-                        ofxCvBlob newBlob = cvContKin2.blobs[i];
+                        kin2FoundBlobs[i].id = kin2BlobTracker.trackedBlobs[i].id;
                         
-                        kin2FoundBlobs[i].centroid.x = normWidth((int)cvContKin2.blobs[i].centroid.x + KIN_W-KIN2_INTERS_W, true);
-                        kin2FoundBlobs[i].centroid.y = normHeight((int)cvContKin2.blobs[i].centroid.y);
-                        kin2FoundBlobs[i].boundingRect.x = normWidth((int)cvContKin2.blobs[i].boundingRect.x + KIN_W-KIN2_INTERS_W, true);
-                        kin2FoundBlobs[i].boundingRect.y = normHeight((int)cvContKin2.blobs[i].boundingRect.y);
-                        kin2FoundBlobs[i].boundingRect.width = normWidth((int)cvContKin2.blobs[i].boundingRect.width, true);
-                        kin2FoundBlobs[i].boundingRect.height = normHeight((int)cvContKin2.blobs[i].boundingRect.height);
+                        kin2FoundBlobs[i].angle = kin2BlobTracker.trackedBlobs[i].angle;
+                        kin2FoundBlobs[i].maccel = kin2BlobTracker.trackedBlobs[i].maccel;
                         
-                        for (int j = 0; j < cvContKin2.blobs[i].pts.size(); j++) {
-                            kin2FoundBlobs[i].pts.push_back(ofPoint(normWidth((int)cvContKin2.blobs[i].pts[j].x + KIN_W-KIN2_INTERS_W, true),normHeight((int)cvContKin2.blobs[i].pts[j].y)));
+                        kin2FoundBlobs[i].centroid.x = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].centroid.x, true, true);
+                        kin2FoundBlobs[i].centroid.y = kin2BlobTracker.trackedBlobs[i].centroid.y;
+                        kin2FoundBlobs[i].boundingRect.x = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].boundingRect.x, true, true);
+                        kin2FoundBlobs[i].boundingRect.y = kin2BlobTracker.trackedBlobs[i].boundingRect.y;
+                        kin2FoundBlobs[i].boundingRect.width = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].boundingRect.width, true, false);
+                        kin2FoundBlobs[i].boundingRect.height =kin2BlobTracker.trackedBlobs[i].boundingRect.height;
+                        
+                        
+                        
+                        for (int j = 0; j < kin2BlobTracker.trackedBlobs[i].pts.size(); j++) {
+                            kin2FoundBlobs[i].pts.push_back(ofPoint(setInRangeWidth(kin2BlobTracker.trackedBlobs[i].pts[j].x, true, true), kin2BlobTracker.trackedBlobs[i].pts[j].y));
                         }
                     }
                 }
@@ -340,10 +328,10 @@ void kinectCapture::drawThreshImg(int x, int y, int w, int h, bool kin2) {
 void kinectCapture::drawContour(int x, int y, int w, int h, bool kin2) {
     
     if (!kin2) {
-        cvContKin1.draw(x, y, w, h);
+        kin1BlobTracker.draw(x, y, w, h);
     }
     else if(bTwoKinects) {
-        cvContKin2.draw(x, y, w, h);
+        kin2BlobTracker.draw(x, y, w, h);
     }
     
 }
@@ -352,14 +340,18 @@ void kinectCapture::drawNormBlobs(int x, int y, int w, int h){
     
     ofPushMatrix();
     ofTranslate(x, y);
-    ofSetColor(0, 255, 0);
     
     for (int i = 0; i < foundBlobs.size(); i++) {
+        ofSetColor(0, 255, 0);
         ofBeginShape();
         for (int j = 0; j < foundBlobs[i].pts.size(); j++) {
             ofVertex(foundBlobs[i].pts[j].x * (float)w, foundBlobs[i].pts[j].y * (float)h);
         }
         ofEndShape();
+        ofSetColor(0, 0, 255);
+        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
+        ofSetColor(255, 0, 0);
+        ofDrawBitmapString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
     }
     
     ofPopMatrix();
@@ -415,6 +407,20 @@ float kinectCapture::normDepth(int val) {
     if(val < 4000) {
         return norm4000[val];
     }    
+    
+}
+
+float kinectCapture::setInRangeWidth(float val, bool _bTwoKinects, bool isKinect2) {
+    
+    if (_bTwoKinects && !isKinect2) {
+        return (val * 640) / 960;
+    }
+    else if (_bTwoKinects && isKinect2) {
+        return ((val * 640) + 320) / 960;
+    }
+    else {
+        return val;
+    }
     
 }
 
