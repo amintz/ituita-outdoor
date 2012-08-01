@@ -41,7 +41,7 @@ void testApp::setup(){
     
     iMode           = 0;
     
-    gui.loadFromXML();
+//    gui.loadFromXML();
     gui.addSlider("Display Modes", iMode, 0, 2);
     gui.addSlider("Near Threshold", iNearThreshold, 0, 255);
     gui.addSlider("Far Threshold", iFarThreshold, 255, 0);
@@ -128,6 +128,7 @@ void testApp::drawGUI() {
         
         kinect.drawThreshImg(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight, true);
         kinect.drawContour(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight, true);
+        
         ofRect(iLeftMargin + iDrawWidth + 20, iTopMargin + iDrawHeight + 20, iDrawWidth, iDrawHeight);
         
 #endif
