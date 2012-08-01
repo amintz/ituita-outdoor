@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include "ofxSimpleGuiToo.h"
 #include "kinectCapture.h"
+#include "ituitaBlobTracker.h"
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
@@ -20,7 +21,7 @@ class testApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-        void exit();
+                void exit();
 		
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -43,6 +44,7 @@ class testApp : public ofBaseApp{
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
         kinectCapture kinect;
+        //ituitaBlobTracker blobTracker;        
     
 // --------------------------------------------
 // MARK: INTERFACE VARIABLES

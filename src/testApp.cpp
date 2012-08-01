@@ -50,9 +50,11 @@ void testApp::setup(){
     gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
     gui.show();
     
-    isGUIActive = false;
+    isGUIActive = true;
     
 // --------------------------------------------
+
+// MARK: SHADER
     
     shader.load("shaders/led.vert", "shaders/led.frag");
     isFilterActive = true;
@@ -150,6 +152,7 @@ void testApp::drawGUI() {
     }
     
     gui.draw();
+    
 }
 
 //--------------------------------------------------------------
@@ -159,6 +162,11 @@ void testApp::exit() {
 
 }
 
+//--------------------------------------------------------------
+// KEYS MAP
+//
+// G: controls (turns on/off) the GUI drawing
+// F: controls (turns on/off) the filter/shader
 //--------------------------------------------------------------
 void testApp::keyPressed(int key){
 

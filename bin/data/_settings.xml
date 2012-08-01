@@ -9,7 +9,7 @@
     </SliderInt_Near_Threshold>
     <SliderInt_Far_Threshold>
         <name>Far Threshold</name>
-        <value>19</value>
+        <value>255</value>
     </SliderInt_Far_Threshold>
     <SliderInt_Min_Blob_Size>
         <name>Min Blob Size</name>
