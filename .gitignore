@@ -19,3 +19,7 @@ profile
 *.moved-aside
 *.DS_Store
 DerivedData
+
+# XML settings
+_settings.xml
+_settings.xml.bak

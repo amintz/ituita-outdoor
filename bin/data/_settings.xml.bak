@@ -1,7 +1,7 @@
 <controls>
     <SliderInt_Display_Modes>
         <name>Display Modes</name>
-        <value>0</value>
+        <value>1</value>
     </SliderInt_Display_Modes>
     <SliderInt_Near_Threshold>
         <name>Near Threshold</name>
@@ -9,7 +9,7 @@
     </SliderInt_Near_Threshold>
     <SliderInt_Far_Threshold>
         <name>Far Threshold</name>
-        <value>255</value>
+        <value>142</value>
     </SliderInt_Far_Threshold>
     <SliderInt_Min_Blob_Size>
         <name>Min Blob Size</name>
