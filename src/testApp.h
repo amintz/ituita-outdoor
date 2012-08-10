@@ -21,7 +21,7 @@ class testApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-        void exit();
+                void exit();
 		
 		void keyPressed(int key);
 		void keyReleased(int key);
@@ -34,36 +34,41 @@ class testApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
 // --------------------------------------------
-    
 // MARK: GRAPHIC INTERFACE DECLARATION
-    
-   ofxSimpleGuiToo gui;
+   
+        void            drawGUI();
+        ofxSimpleGuiToo gui;
+        bool            isGUIActive;
 
 // --------------------------------------------
-    
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
-    kinectCapture kinect;
-    //ituitaBlobTracker blobTracker;
+        kinectCapture kinect;
+        //ituitaBlobTracker blobTracker;      
     
 // --------------------------------------------
-   
 // MARK: INTERFACE VARIABLES
 
-    bool    bDrawDepthMap;
-    bool    bDrawThreshold;
-    bool    bDrawBlobs;
-    
-    int     iDrawWidth, iDrawHeight;
-    int     iTopMargin, iLeftMargin;
-    
-    int     iMode;
+        bool    bDrawDepthMap;
+        bool    bDrawThreshold;
+        bool    bDrawBlobs;
+        
+        int     iDrawWidth, iDrawHeight;
+        int     iTopMargin, iLeftMargin;
+        
+        int     iMode;
     
 // --------------------------------------------
-
 // MARK: CONTROL VARIABLES
 
-    int     iFarThreshold, iNearThreshold;
-    int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
+        int     iFarThreshold, iNearThreshold;
+        int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
+    
+// --------------------------------------------
+// MARK: SHADER
+        
+        ofShader shader;
+        bool    isFilterActive;
+        int     ledRatio;
 
 };
