@@ -239,8 +239,8 @@ void kinectCapture::update() {
             
             pointCloud.clear();
                      
-            for (int x = 0; x < OUTPUT_W; x++) {
-                for (int y = 0; y < KIN_H; y++) {
+            for (int y = 0; y < KIN_H; y++) {
+                for (int x = 0; x < KIN_OUTPUT_W; x++) {
                     if (x <= KIN2_INTERS_W) {
                         pointCloud.push_back(ofPoint(normWidth(x, true), normHeight(y), normDepth((int)kinect1.getDistanceAt(x, y))));
                     }
@@ -277,8 +277,8 @@ void kinectCapture::update() {
             
             pointCloud.clear();
             
-            for (int x = 0; x < KIN_W; x++) {
-                for (int y = 0; y < KIN_H; y++) {
+            for (int y = 0; y < KIN_H; y++) {
+                for (int x = 0; x < KIN_W; x++) {
                     pointCloud.push_back(ofPoint(normWidth(x), normHeight(y), normDepth((int)kinect1.getDistanceAt(x,y))));
                 }
             }
@@ -424,3 +424,15 @@ float kinectCapture::setInRangeWidth(float val, bool _bTwoKinects, bool isKinect
     
 }
 
+bool kinectCapture::isTwoKinects() {
+    return bTwoKinects;
+}
+
+int kinectCapture::getOutputWidth() {
+    if(bTwoKinects) return KIN_OUTPUT_W;
+    return KIN_W;
+}
+
+int kinectCapture::getOutputHeight() {
+    return KIN_H;
+}
