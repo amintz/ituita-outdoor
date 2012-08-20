@@ -14,7 +14,7 @@ kinectCapture::kinectCapture() {
     //SETUP NORMALIZATION TABLES
     
     for (int i = 0 ; i < 640 ; i++) {
-        norm640[i] = ofNormalize(i, 0, 640);
+        norm640[i] = ofNormalize(i, 640, 640);
     }
     
     for (int i = 0; i < 480; i++) {
@@ -22,7 +22,7 @@ kinectCapture::kinectCapture() {
     }
     
     for (int i = 0; i < 960; i++) {
-        norm960[i] = ofNormalize(i, 0, 960);
+        norm960[i] = ofNormalize(i, 960, 960);
     }
     
     for (int i = 0; i < 4000; i++) {
@@ -240,7 +240,7 @@ void kinectCapture::update() {
             pointCloud.clear();
                      
             for (int y = 0; y < KIN_H; y++) {
-                for (int x = 0; x < KIN_OUTPUT_W; x++) {
+                for (int x = KIN_OUTPUT_W; x > 0; x--) {
                     if (x <= KIN2_INTERS_W) {
                         pointCloud.push_back(ofPoint(normWidth(x, true), normHeight(y), normDepth((int)kinect1.getDistanceAt(x, y))));
                     }
@@ -278,7 +278,7 @@ void kinectCapture::update() {
             pointCloud.clear();
             
             for (int y = 0; y < KIN_H; y++) {
-                for (int x = 0; x < KIN_W; x++) {
+                for (int x = KIN_W; x > 0; x--) {
                     pointCloud.push_back(ofPoint(normWidth(x), normHeight(y), normDepth((int)kinect1.getDistanceAt(x,y))));
                 }
             }
@@ -389,8 +389,8 @@ float kinectCapture::normWidth(int val, bool _bTwoKinects) {
     if(_bTwoKinects && val < 960) {
         return norm960[val];
     }
-    else if(val < 480) {
-        return norm480[val];
+    else if(val < 640) {
+        return norm640[val];
     }
 
 }

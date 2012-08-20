@@ -12,7 +12,7 @@
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
-#define USE_TWO_KINECTS
+//#define USE_TWO_KINECTS
 
 #define NEG 0
 #define NEU 1
