@@ -13,10 +13,10 @@
 #include "ituitaBlobTracker.h"
 #include "ofxKinect.h"
 
-#define KIN_W 640
-#define KIN_H 480
+#define KIN_W         640
+#define KIN_H         480
 #define KIN2_INTERS_W 320
-#define OUTPUT_W 960
+#define KIN_OUTPUT_W      960
 
 class kinectCapture {
     
@@ -35,6 +35,9 @@ class kinectCapture {
     void drawNormBlobs(int x, int y, int w, int h);
     void drawDepthFromCloud(int x, int y, int w, int h);
     void close();
+    bool isTwoKinects();
+    int getOutputWidth();
+    int getOutputHeight();
     
     vector<ofxBlob> foundBlobs;
     vector<ofxBlob> kin1FoundBlobs;
