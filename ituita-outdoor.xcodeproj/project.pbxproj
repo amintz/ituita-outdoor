@@ -691,7 +691,8 @@
 				5FC2A3EA15DC38EC007681A8 /* Box2D */,
 				5FC2A43815DC38EC007681A8 /* triangle */,
 			);
-			path = libs;
+			name = libs;
+			path = addon/ofxBox2d/libs;
 			sourceTree = "<group>";
 		};
 		5FC2A3EA15DC38EC007681A8 /* Box2D */ = {
@@ -853,7 +854,8 @@
 				5FC2A44E15DC38EC007681A8 /* ofxBox2dRender.h */,
 				5FC2A44F15DC38EC007681A8 /* ofxBox2dUtils.h */,
 			);
-			path = src;
+			name = src;
+			path = addon/ofxBox2d/src;
 			sourceTree = "<group>";
 		};
 		6e54289412d2d94f45a051132369530c /* libs */ = {
@@ -1531,6 +1533,7 @@
 					../../../addons/ofxOpenCv/libs/opencv/lib/osx/opencv.a,
 					../../../addons/ofxOsc/libs/oscpack/lib/osx/osc.a,
 				);
+				SDKROOT = "";
 			};
 			name = Debug;
 		};
@@ -1655,6 +1658,7 @@
 					../../../addons/ofxOpenCv/libs/opencv/lib/osx/opencv.a,
 					../../../addons/ofxOsc/libs/oscpack/lib/osx/osc.a,
 				);
+				SDKROOT = "";
 			};
 			name = Release;
 		};
@@ -1741,6 +1745,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)Debug";
+				SDKROOT = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1827,6 +1832,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = "";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

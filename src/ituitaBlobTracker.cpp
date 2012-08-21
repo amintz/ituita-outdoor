@@ -49,6 +49,63 @@ void ituitaBlobTracker::update( ofxCvGrayscaleImage& input, int _threshold, int 
     track(&contourFinder);    
 }
 
+void ituitaBlobTracker::update( ofxCvGrayscaleImage& input, ofxCvGrayscaleImage& prevInput, int _minArea, int _maxArea, int _nConsidered, double _hullPress, bool _bFindHoles, bool _bUseApproximation){
+    
+    if (( width != input.getWidth()) || 
+        ( height != input.getHeight()) ||
+        ( height != prevInput.getHeight()) ||
+        ( width != input.getWidth()) ||
+        ( height != diffImage.getHeight()) ||
+        ( width != diffImage.getWidth())){
+        width = input.getWidth();
+        height = input.getHeight();
+        diffImage.allocate(width,height);
+    }
+    
+    diffImage = input;
+    
+    diffImage.absDiff(prevInput);
+    
+    diffImage.flagImageChanged();
+    
+    diffImage.updateTexture();
+    
+    contourFinder.findContours(diffImage, _minArea, _maxArea, _nConsidered, _hullPress, _bFindHoles, _bUseApproximation);
+    track(&contourFinder);    
+}
+
+void ituitaBlobTracker::update( ofxCvGrayscaleImage& input, ofxCvGrayscaleImage& prevInput, int _thresholdNear, int _thresholdFar, int _minArea, int _maxArea, int _nConsidered, double _hullPress, bool _bFindHoles, bool _bUseApproximation){
+    
+    if (( width != input.getWidth()) || 
+        ( height != input.getHeight()) ||
+        diffImage.width == 0     ){
+        width = input.getWidth();
+        height = input.getHeight();
+        diffImage.allocate(width,height);
+        inputNear.allocate(width, height);
+        inputFar.allocate(width, height);
+    }
+    
+    inputNear = input;
+    inputFar = input;
+    
+    inputNear.threshold(255 - _thresholdNear, true);
+    inputFar.threshold(255 - _thresholdFar);
+    cvAnd(inputNear.getCvImage(), inputFar.getCvImage(), input.getCvImage(), NULL);
+    
+    input.flagImageChanged();
+    
+    diffImage = input;
+    
+    diffImage.absDiff(prevInput);
+    diffImage.flagImageChanged();
+    
+    diffImage.updateTexture();
+    
+    contourFinder.findContours(diffImage, _minArea, _maxArea, _nConsidered, _hullPress, _bFindHoles, _bUseApproximation);
+    track(&contourFinder);    
+}
+
 void ituitaBlobTracker::update(ofxCvGrayscaleImage& input, int _thresholdNear, int _thresholdFar, int _minArea, int _maxArea, int _nConsidered, double _hullPress, bool _bFindHoles, bool _bUseApproximation) {
     
     

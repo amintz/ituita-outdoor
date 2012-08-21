@@ -62,10 +62,12 @@ class kinectCapture {
 //    ofxCvGrayscaleImage cvGrayKin1ThreshNear;
 //    ofxCvGrayscaleImage cvGrayKin1ThreshFar;
     ofxCvGrayscaleImage cvGrayKin1;
+    ofxCvGrayscaleImage cvGrayKin1Prev;
 //    ofxCvContourFinder  cvContKin1;
 	
     ofxKinect kinect2;
     ofxCvGrayscaleImage cvGrayKin2;
+    ofxCvGrayscaleImage cvGrayKin2Prev;
 //    ofxCvGrayscaleImage cvGrayKin2ThreshNear;
 //    ofxCvGrayscaleImage cvGrayKin2ThreshFar;
 //    ofxCvContourFinder  cvContKin2;
@@ -73,6 +75,8 @@ class kinectCapture {
     // MARK: CONTROL VARIABLES
     
     bool bTwoKinects;
+    
+    bool bMovementDetection;
     
     bool bKinectsStarted;
     bool bKin1Refreshed, bKin2Refreshed;

@@ -14,7 +14,7 @@ kinectCapture::kinectCapture() {
     //SETUP NORMALIZATION TABLES
     
     for (int i = 0 ; i < 640 ; i++) {
-        norm640[i] = ofNormalize(i, 0, 640);
+        norm640[i] = ofNormalize(i, 640, 640);
     }
     
     for (int i = 0; i < 480; i++) {
@@ -22,7 +22,7 @@ kinectCapture::kinectCapture() {
     }
     
     for (int i = 0; i < 960; i++) {
-        norm960[i] = ofNormalize(i, 0, 960);
+        norm960[i] = ofNormalize(i, 960, 960);
     }
     
     for (int i = 0; i < 4000; i++) {
@@ -38,6 +38,8 @@ kinectCapture::~kinectCapture() {
 void kinectCapture::setup(bool _bTwoKinects) {
     
     bTwoKinects = _bTwoKinects;
+    
+    bMovementDetection = true;
     
     // SETUP KINECT ONE
     
@@ -59,6 +61,7 @@ void kinectCapture::setup(bool _bTwoKinects) {
     
     kinect1.setCameraTiltAngle(fKin1Angle);
     cvGrayKin1.allocate(640, 480);
+    cvGrayKin1Prev.allocate(640,480);
     
     bKin1Refreshed = false;
     
@@ -84,6 +87,7 @@ void kinectCapture::setup(bool _bTwoKinects) {
         
         kinect2.setCameraTiltAngle(fKin2Angle);
         cvGrayKin2.allocate(640, 480);
+        cvGrayKin2Prev.allocate(640, 480);
         
         bKinectsStarted = false;
         bKin2Refreshed = false;
@@ -123,9 +127,18 @@ void kinectCapture::update() {
         
         // DO: UPDATE ALL CV STUFF
         
+        if (bMovementDetection) {
+            cvGrayKin1Prev = cvGrayKin1;
+        }
+    
         cvGrayKin1.setFromPixels(kinect1.getDepthPixels(), kinect1.width, kinect1.height);
         
-        kin1BlobTracker.update(cvGrayKin1, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
+        if (bMovementDetection) {
+            kin1BlobTracker.update(cvGrayKin1, cvGrayKin1Prev, iNearThreshold, iFarThreshold,iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
+        }
+        else {
+            kin1BlobTracker.update(cvGrayKin1, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
+        }
         
         kin1FoundBlobs.clear();
         
@@ -181,9 +194,18 @@ void kinectCapture::update() {
             
             // DO: UPDATE ALL CV STUFF
             
-           cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
+            if(bMovementDetection) {
+                cvGrayKin2Prev = cvGrayKin2;
+            }
+            cvGrayKin2.setFromPixels(kinect2.getDepthPixels(), kinect2.width, kinect2.height);
             
-            kin2BlobTracker.update(cvGrayKin2, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);            
+            if(bMovementDetection) {
+                kin2BlobTracker.update(cvGrayKin2, cvGrayKin2Prev,iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
+            }
+            else {
+                kin2BlobTracker.update(cvGrayKin2, iNearThreshold, iFarThreshold, iMinBlobSize, iMaxBlobSize, iMaxNumBlobs, 20, false, true);
+            }
+                        
             
             kin2FoundBlobs.clear();
             
@@ -240,7 +262,7 @@ void kinectCapture::update() {
             pointCloud.clear();
                      
             for (int y = 0; y < KIN_H; y++) {
-                for (int x = 0; x < KIN_OUTPUT_W; x++) {
+                for (int x = KIN_OUTPUT_W; x > 0; x--) {
                     if (x <= KIN2_INTERS_W) {
                         pointCloud.push_back(ofPoint(normWidth(x, true), normHeight(y), normDepth((int)kinect1.getDistanceAt(x, y))));
                     }
@@ -278,7 +300,7 @@ void kinectCapture::update() {
             pointCloud.clear();
             
             for (int y = 0; y < KIN_H; y++) {
-                for (int x = 0; x < KIN_W; x++) {
+                for (int x = KIN_W; x > 0; x--) {
                     pointCloud.push_back(ofPoint(normWidth(x), normHeight(y), normDepth((int)kinect1.getDistanceAt(x,y))));
                 }
             }
@@ -389,8 +411,8 @@ float kinectCapture::normWidth(int val, bool _bTwoKinects) {
     if(_bTwoKinects && val < 960) {
         return norm960[val];
     }
-    else if(val < 480) {
-        return norm480[val];
+    else if(val < 640) {
+        return norm640[val];
     }
 
 }
