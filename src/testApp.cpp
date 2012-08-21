@@ -69,7 +69,7 @@ void testApp::setup(){
 // MARK: SHADER
     
     shader.load("shaders/led.vert", "shaders/led.frag");
-    isFilterActive = true;
+    isFilterActive = false;
     ledRatio = 4;
     
 // --------------------------------------------

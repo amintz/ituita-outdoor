@@ -22,8 +22,11 @@ public:
                    int minArea = 20 ,int maxArea = (340*240)/3, int nConsidered = 10,
                    double hullPress = 20, bool bFindHoles = false, bool bUseApproximation = true);
     
+    void    update (ofxCvGrayscaleImage& input, ofxCvGrayscaleImage& prevInput, int _minArea = 20, int _maxArea = (320*240)/3, int _nConsidered = 10, double _hullPress = 20, bool _bFindHoles = false, bool _bUseApproximation = true);
+
+    void    update (ofxCvGrayscaleImage& input, ofxCvGrayscaleImage& prevInput, int _thresholdNear = 0, int _thresholdFar = 255, int _minArea = 20, int _maxArea = (320*240)/3, int _nConsidered = 10, double _hullPress = 20, bool _bFindHoles = false, bool _bUseApproximation = true);
     
-    void update(ofxCvGrayscaleImage& input, int _thresholdMin = 0, int _thresholdMax = 255, int _minArea = 20, int _maxArea = (320*240)/3, int _nConsidered = 10, double _hullPress = 20, bool _bFindHoles = false, bool _bUseApproximation = true);
+    void update(ofxCvGrayscaleImage& input, int _thresholdNear = 0, int _thresholdFar = 255, int _minArea = 20, int _maxArea = (320*240)/3, int _nConsidered = 10, double _hullPress = 20, bool _bFindHoles = false, bool _bUseApproximation = true);
     
     void    draw( float _x = 0, float _y = 0, float _width = 0, float _height = 0);
     
@@ -43,6 +46,7 @@ public:
     
     ofxContourFinder    contourFinder;
     ofxCvGrayscaleImage backgroundImage;
+    ofxCvGrayscaleImage diffImage;
     
     ofxCvGrayscaleImage inputNear, inputFar;
     
