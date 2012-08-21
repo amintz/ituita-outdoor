@@ -69,7 +69,7 @@ void testApp::setup(){
 // MARK: SHADER
     
     shader.load("shaders/led.vert", "shaders/led.frag");
-    isFilterActive = true;
+    isFilterActive = false;
     ledRatio = 4;
     
 // --------------------------------------------
@@ -150,7 +150,8 @@ void testApp::addParticles(int scope, int type, int num) {
     for(int i = 0; i < num ; i++) {
         CustomParticle p;        
         
-        p.setPhysics(3.0, 0.53, 0.3);
+        //density, restitution/bounce, friction
+        p.setPhysics(8.0, 0.2, 0.5);
 
         float x = ofRandom(attract.x - delta, attract.x + delta);
         float y = ofRandom(attract.y - delta, attract.y + delta);
@@ -225,12 +226,13 @@ void testApp::draw(){
             int relativeY = ofMap(p.getPosition().y, 0, FBO_H, 0, kinect.getOutputHeight());
             
             int relativeKinectIndex = relativeX + (kinect.getOutputWidth() * relativeY);
-            
-            ofPoint kinectPoint = kinect.pointCloud[relativeKinectIndex];
-            float z = (kinectPoint.z < 0.001) ? 1 : kinectPoint.z;
-            float prox = 1.0 - z;
-            float sz = 4 + (pow(prox, 2) * 50.0);
-            p.setRadius(sz);
+            if(relativeKinectIndex < kinect.pointCloud.size()) {
+                ofPoint kinectPoint = kinect.pointCloud[relativeKinectIndex];
+                float z = (kinectPoint.z < 0.001) ? 1 : kinectPoint.z;
+                float prox = 1.0 - z;
+                float sz = 4 + (pow(prox, 2) * 50.0);
+                p.setRadius(sz);
+            }
             p.draw();
         }    
     }
