@@ -164,6 +164,13 @@ void kinectCapture::update() {
                      kin1FoundBlobs[i].boundingRect.y = kin1BlobTracker.trackedBlobs[i].boundingRect.y;
                      kin1FoundBlobs[i].boundingRect.width = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].boundingRect.width, bTwoKinects, false);
                      kin1FoundBlobs[i].boundingRect.height =kin1BlobTracker.trackedBlobs[i].boundingRect.height;
+                    
+                     kin1FoundBlobs[i].angleBoundingRect.x = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].angleBoundingRect.x, bTwoKinects, false);
+                     kin1FoundBlobs[i].angleBoundingRect.y = kin1BlobTracker.trackedBlobs[i].angleBoundingRect.y;
+                     kin1FoundBlobs[i].angleBoundingRect.width = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].angleBoundingRect.width, bTwoKinects, false);
+                     kin1FoundBlobs[i].angleBoundingRect.height =kin1BlobTracker.trackedBlobs[i].angleBoundingRect.height;
+                     
+                    
                      
              
                      for (int j = 0; j < kin1BlobTracker.trackedBlobs[i].pts.size(); j++) {
@@ -231,7 +238,11 @@ void kinectCapture::update() {
                         kin2FoundBlobs[i].boundingRect.y = kin2BlobTracker.trackedBlobs[i].boundingRect.y;
                         kin2FoundBlobs[i].boundingRect.width = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].boundingRect.width, true, false);
                         kin2FoundBlobs[i].boundingRect.height =kin2BlobTracker.trackedBlobs[i].boundingRect.height;
-                        
+                       
+                        kin2FoundBlobs[i].angleBoundingRect.x = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].angleBoundingRect.x, true, true);
+                        kin2FoundBlobs[i].angleBoundingRect.y = kin2BlobTracker.trackedBlobs[i].angleBoundingRect.y;
+                        kin2FoundBlobs[i].angleBoundingRect.width = setInRangeWidth(kin2BlobTracker.trackedBlobs[i].angleBoundingRect.width, true, false);
+                        kin2FoundBlobs[i].angleBoundingRect.height =kin2BlobTracker.trackedBlobs[i].angleBoundingRect.height;
                         
                         
                         for (int j = 0; j < kin2BlobTracker.trackedBlobs[i].pts.size(); j++) {
