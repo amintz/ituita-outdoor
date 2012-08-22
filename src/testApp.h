@@ -124,8 +124,6 @@ class testApp : public ofBaseApp{
     
         kinectCapture kinect;
 
-        //ituitaBlobTracker blobTracker;   
-
     
 // --------------------------------------------
 // MARK: INTERFACE VARIABLES
