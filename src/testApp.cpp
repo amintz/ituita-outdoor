@@ -17,6 +17,10 @@ void testApp::setup(){
     iMaxRandomParticles   = 20;
     iDeltaRandomParticles = 60;
     fAttractionForce      = 2.0;
+    
+    fDensity = 8.0;
+    fBounce = 0.2;
+    fFriction  = 0.5;
 
 // --------------------------------------------
     
@@ -54,11 +58,14 @@ void testApp::setup(){
     gui.addSlider("Max Blob Size", iMaxBlobSize, 1, 307200);
     gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
     
-    gui.addTitle("Random Particles");
-    gui.addSlider("Max", iMaxRandomParticles, 6, 40);
-    gui.addSlider("Delta", iDeltaRandomParticles, 0, 100);
+    gui.addPage("Particles");
+    gui.addSlider("Random Max", iMaxRandomParticles, 6, 40);
+    gui.addSlider("Random Delta", iDeltaRandomParticles, 0, 100);
+    gui.addSlider("Density", fDensity, 0.0f, 20.0f);
+    gui.addSlider("Bounce", fBounce, 0.0f, 1.0f);
+    gui.addSlider("Friction", fFriction, 0.0f, 1.0f);
     gui.addButton("Reset particles", bResetData);
-    gui.addSlider("Attraction force", fAttractionForce, 1.0, 20.0);
+    gui.addSlider("Attraction (real-time)", fAttractionForce, 0.0f, 20.0f);    
     
     gui.show();
     
@@ -79,13 +86,13 @@ void testApp::setup(){
     
 	box2d.init();
 	box2d.setGravity(0, 0);
-	box2d.createBounds(FBO_W, FBO_H);
+	box2d.createBounds(0, 0, FBO_W, FBO_H);
 	box2d.setFPS(30.0);
 	box2d.registerGrabbing();   
     
-    personalCenter.set(OUTPUT_SCREEN_W/6.0, 2.0*OUTPUT_SCREEN_H/3.0);
-    neighborhoodCenter.set(FBO_W/2.0, 2.0*OUTPUT_SCREEN_H/3.0);
-    cityCenter.set(FBO_W - OUTPUT_SCREEN_W/6.0, 2.0*OUTPUT_SCREEN_H/3.0);
+    personalCenter.set(OUTPUT_SCREEN_W/6, 2*OUTPUT_SCREEN_H/3);
+    neighborhoodCenter.set(FBO_W/2, 2*OUTPUT_SCREEN_H/3);
+    cityCenter.set(FBO_W - OUTPUT_SCREEN_W/6, 2*OUTPUT_SCREEN_H/3);
     
 // --------------------------------------------
     
@@ -109,29 +116,36 @@ void testApp::setupData() {
     cneu = data.getCityNeutrals();
     cneg = data.getCityNegatives();
     
-    cout << "- DATA ---------------------------------------------" << endl;
-    cout << "personal: " << ppos << " / " << pneu << " / " << pneg << endl;
-    cout << "neighborhood: " << npos << " / " << nneu << " / " << nneg << endl;
-    cout << "city: " << cpos << " / " << cneu << " / " << cneg << endl;
-    cout << "----------------------------------------------------" << endl;
+    string datalog = "- DATA --------------------------------------------- \n";
+    datalog += "personal     (" + ofToString(ppos+pneu+pneg) + "): ";
+    datalog += ofToString(ppos) + " / " + ofToString(pneu) + " / " + ofToString(pneg) + "\n";
+    datalog += "neighborhood (" + ofToString(npos+nneu+nneg) + "): ";
+    datalog += ofToString(npos) + " / " + ofToString(nneu) + " / " + ofToString(nneg) + "\n";
+    datalog += "city         (" + ofToString(cpos+cneu+cneg) + "): ";
+    datalog += ofToString(cpos) + " / " + ofToString(cneu) + " / " + ofToString(cneg) + "\n";
+    datalog += "---------------------------------------------------- \n";
+    ofLog(OF_LOG_NOTICE, datalog);
+
+    b2dParticles.clear();
     
-    particles.clear();
-    
-    addParticles(PERSONAL, POS, ppos);
-    addParticles(PERSONAL, NEU, pneu);
     addParticles(PERSONAL, NEG, pneg);
+    addParticles(PERSONAL, NEU, pneu);
+    addParticles(PERSONAL, POS, ppos);
     
-    addParticles(NEIGHBORHOOD, POS, npos);
-    addParticles(NEIGHBORHOOD, NEU, nneu);
     addParticles(NEIGHBORHOOD, NEG, nneg);
+    addParticles(NEIGHBORHOOD, NEU, nneu);
+    addParticles(NEIGHBORHOOD, POS, npos);
     
-    addParticles(CITY, POS, cpos);
-    addParticles(CITY, NEU, cneu);
     addParticles(CITY, NEG, cneg);
+    addParticles(CITY, NEU, cneu);
+    addParticles(CITY, POS, cpos);
 }
 
+void testApp::addParticles(int scope, int type, int num) {
+    addParticles(scope, type, num, fDensity, fBounce, fFriction);
+}
 
-void testApp::addParticles(int scope, int type, int num) {    
+void testApp::addParticles(int scope, int type, int num, float density, float bounce, float friction) {    
 
     ofVec2f attract;
     switch(scope) {
@@ -151,15 +165,15 @@ void testApp::addParticles(int scope, int type, int num) {
         CustomParticle p;        
         
         //density, restitution/bounce, friction
-        p.setPhysics(8.0, 0.2, 0.5);
+        p.setPhysics(density, bounce, friction);
 
         float x = ofRandom(attract.x - delta, attract.x + delta);
         float y = ofRandom(attract.y - delta, attract.y + delta);
         
-        p.setup(box2d.getWorld(), x, y, 10);
+        p.setup(box2d.getWorld(), x, y, 4);
         p.setupTheCustomData(scope, type, attract.x, attract.y);
         
-        particles.push_back(p);    
+        b2dParticles.push_back(p);    
     }
     
 }
@@ -179,12 +193,12 @@ void testApp::update(){
     }
     
     box2d.update();	
-    
-    for(int i = 0; i < particles.size(); i++) {        
-        Data * customData = (Data*)particles[i].getData();        
-        particles[i].addAttractionPoint(customData->attractionPoint, fAttractionForce);
-    }
 
+    for(int i = 0; i < b2dParticles.size(); i++) {        
+        Data * customData = (Data*)b2dParticles[i].getData();        
+        b2dParticles[i].addAttractionPoint(customData->attractionPoint, fAttractionForce);
+    }
+    
 }
 
 //--------------------------------------------------------------
@@ -216,26 +230,35 @@ void testApp::draw(){
         shader.setUniform1i("u_ratio", ledRatio);
     }
     
-    if(kinect.pointCloud.size() > 0) {
-        for(int i = 0; i < particles.size(); i++) {
-            CustomParticle p = particles[i];
-            
-//            int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, kinect.getOutputWidth());            
+    for(int i = 0; i < b2dParticles.size(); i++) {
+        CustomParticle p = b2dParticles[i];
+        
+        if(kinect.pointCloud.size() > 0) {
+            //            int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, kinect.getOutputWidth());            
             int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, OUTPUT_SCREEN_W);
             relativeX = ofMap(relativeX, 0, OUTPUT_SCREEN_W, 0, kinect.getOutputWidth());
             int relativeY = ofMap(p.getPosition().y, 0, FBO_H, 0, kinect.getOutputHeight());
             
             int relativeKinectIndex = relativeX + (kinect.getOutputWidth() * relativeY);
+            
             if(relativeKinectIndex < kinect.pointCloud.size()) {
                 ofPoint kinectPoint = kinect.pointCloud[relativeKinectIndex];
                 float z = (kinectPoint.z < 0.001) ? 1 : kinectPoint.z;
                 float prox = 1.0 - z;
                 float sz = 4 + (pow(prox, 2) * 50.0);
+                
                 p.setRadius(sz);
             }
-            p.draw();
         }    
+
+        p.draw();
     }
+    
+    ofSetColor(70, 255);
+    ofCircle(personalCenter, 6);
+    ofCircle(neighborhoodCenter, 6);
+    ofCircle(cityCenter, 6);
+    
 
     if(isFilterActive) {        
         shader.end();
@@ -331,6 +354,8 @@ void testApp::keyPressed(int key){
 
     if(key == 'g' || key == 'G') {
         isGUIActive = !isGUIActive;
+        if(isGUIActive) gui.show();
+        else gui.hide();
 	} else if(key == 'f' || key =='F') {
         isFilterActive = !isFilterActive;
     }

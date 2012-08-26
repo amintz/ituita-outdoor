@@ -21,5 +21,5 @@ profile
 DerivedData
 
 # XML settings
-_settings.xml
-_settings.xml.bak
+bin/data/*.xml
+bin/data/*.xml.bak

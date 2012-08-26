@@ -63,7 +63,11 @@ public:
         cutomData->scope = scope;
 		cutomData->type = type;
 		cutomData->color.setHex(colors[type]);
-        cutomData->attractionPoint.set(attractionX, attractionY);        
+        cutomData->attractionPoint.set(attractionX, attractionY);
+        
+        string log = "scope: " + ofToString(scope) + " / type: " + ofToString(type);
+        log += " / attractionPoint: " + ofToString(attractionX) + ", " + ofToString(attractionY);
+        ofLog(OF_LOG_VERBOSE, log);
 	}
 	
 	void draw() {
@@ -145,6 +149,8 @@ class testApp : public ofBaseApp{
         int     iMaxRandomParticles, iDeltaRandomParticles;
         float   fAttractionForce;
         bool    bResetData;
+    
+        float   fDensity, fBounce, fFriction;
         
 
 // --------------------------------------------
@@ -167,9 +173,13 @@ class testApp : public ofBaseApp{
 
         void setupData();
         void addParticles(int scope, int type, int num);
+        void addParticles(int scope, int type, int num, 
+                          float density, float bounce, float friction);    
+    
     
         ofxBox2d				box2d;			  //	the box2d world
-        vector<CustomParticle>	particles;		  //	default box2d circles
+        vector<CustomParticle>	b2dParticles;		  //	default box2d circles
+        vector<ofxBox2dRect>    b2dBlobs;
     
         ofVec2f personalCenter;
         ofVec2f neighborhoodCenter;

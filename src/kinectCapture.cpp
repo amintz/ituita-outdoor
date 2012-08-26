@@ -9,6 +9,9 @@
 #include "kinectCapture.h"
 #include <iostream>
 
+ofTrueTypeFont font;
+
+
 kinectCapture::kinectCapture() {
     
     //SETUP NORMALIZATION TABLES
@@ -99,7 +102,8 @@ void kinectCapture::setup(bool _bTwoKinects) {
     iMinBlobSize    = 20;
     iMaxBlobSize    = 20000;
     iMaxNumBlobs    = 10;
-    
+        
+    font.loadFont("Ruda-Regular.ttf", 32); 
 }
 
 void kinectCapture::update() {
@@ -170,9 +174,6 @@ void kinectCapture::update() {
                      kin1FoundBlobs[i].angleBoundingRect.width = setInRangeWidth(kin1BlobTracker.trackedBlobs[i].angleBoundingRect.width, bTwoKinects, false);
                      kin1FoundBlobs[i].angleBoundingRect.height =kin1BlobTracker.trackedBlobs[i].angleBoundingRect.height;
                      
-                    
-                     
-             
                      for (int j = 0; j < kin1BlobTracker.trackedBlobs[i].pts.size(); j++) {
                          kin1FoundBlobs[i].pts.push_back(ofPoint(setInRangeWidth(kin1BlobTracker.trackedBlobs[i].pts[j].x, bTwoKinects, false),kin1BlobTracker.trackedBlobs[i].pts[j].y));
                      }
@@ -382,9 +383,28 @@ void kinectCapture::drawNormBlobs(int x, int y, int w, int h){
         }
         ofEndShape();
         ofSetColor(0, 0, 255);
-        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
+        
+// DRAW RAW BOUNDING RECT (WITHOUT ANGLE)
+//        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
+        
+        
+// DRAW MINIMAL SIZED ANGLED BOUNDING RECT
+        ofPushMatrix();
+        ofTranslate(foundBlobs[i].angleBoundingRect.x * w, foundBlobs[i].angleBoundingRect.y * h);
+        ofRotate(foundBlobs[i].angle+90, 0.0f, 0.0f, 1.0f);
+        ofTranslate(-(foundBlobs[i].angleBoundingRect.x * w), -(foundBlobs[i].angleBoundingRect.y * h));                
+        ofNoFill();
+        
+        ofPushStyle();
+        ofNoFill();
+        ofRect((foundBlobs[i].angleBoundingRect.x - foundBlobs[i].angleBoundingRect.width/2) * w, (foundBlobs[i].angleBoundingRect.y - foundBlobs[i].angleBoundingRect.height/2) * h, foundBlobs[i].angleBoundingRect.width * w, foundBlobs[i].angleBoundingRect.height * h);
+        
+        ofPopStyle();
+        ofPopMatrix();        
+        
         ofSetColor(255, 0, 0);
-        ofDrawBitmapString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
+        //ofDrawBitmapString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
+        font.drawString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
     }
     
     ofPopMatrix();
