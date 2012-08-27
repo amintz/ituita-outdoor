@@ -175,8 +175,12 @@ class testApp : public ofBaseApp{
         void addParticles(int scope, int type, int num);
         void addParticles(int scope, int type, int num, 
                           float density, float bounce, float friction);   
+        float getMinParticleSize(int particlesCount);
     
         bool isDebugingBox2d;
+        float personalMinParticleSize,
+                neighborhoodMinParticleSize,
+                cityMinParticleSize;
     
         ofxBox2d				box2d;			//	the box2d world
         vector<CustomParticle>	b2dParticles;   //	box2d particles

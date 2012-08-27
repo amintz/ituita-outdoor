@@ -2,17 +2,20 @@
 // [fturcheti] TODO list
 //--------------------------------------------------------------
 //
-// TODO: set minimum particle size proportional to particles count
-// ???:  what about the maximum size
+// TODO: test particles size proportional to particles count
+// ?:  what about the maximum size
 //
 // TODO: implement gestures interactions
-// !!!:  transform blobs into box2d rects
-// !!!:  map the blobs/rects by its ids
-// !!!:  mind the rigid joints
+// !:  transform blobs into box2d rects
+// !:  map the blobs/rects by its ids
+// ?:  mind the rigid joints
 //
 // TODO: implement ghosts particles
 //
-// TODO: rafactor everything related to the graphics
+// TODO: refactor everything related to the graphics
+//
+// TODO: implement "add new particle"
+// !:  animation, particle falling down
 //
 //--------------------------------------------------------------
 
@@ -78,7 +81,7 @@ void testApp::setup(){
     gui.addSlider("Max Num Blobs", iMaxNumBlobs, 1, 30);
     
     gui.addPage("Particles");
-    gui.addSlider("Random Max", iMaxRandomParticles, 6, 40);
+    gui.addSlider("Random Max", iMaxRandomParticles, 1, 60);
     gui.addSlider("Random Delta", iDeltaRandomParticles, 0, 100);
     gui.addSlider("Density", fDensity, 0.0f, 50.0f);
     gui.addSlider("Bounce", fBounce, 0.0f, 1.0f);
@@ -136,6 +139,11 @@ void testApp::setup(){
     
 }
 
+float testApp::getMinParticleSize(int particlesCount) {    
+    float pc = sqrt( ofClamp(particlesCount, 1, 64) );
+    return ofMap(pc, 1, 8, 30, 6);
+}
+
 void testApp::setupData() {
 
     // GENERATING RANDOM VALUES
@@ -146,14 +154,17 @@ void testApp::setupData() {
     ppos = data.getPersonalPositives();
     pneu = data.getPersonalNeutrals();
     pneg = data.getPersonalNegatives();
+    personalMinParticleSize = getMinParticleSize(ppos+pneu+pneg);
     
     npos = data.getNeighborhoodPositives();
     nneu = data.getNeighborhoodNeutrals();
     nneg = data.getNeighborhoodNegatives();
+    neighborhoodMinParticleSize = getMinParticleSize(npos+nneu+nneg);
     
     cpos = data.getCityPositives();
     cneu = data.getCityNeutrals();
     cneg = data.getCityNegatives();
+    cityMinParticleSize = getMinParticleSize(cpos+cneu+cneg);
     
     // LOGGING THE DATA
     string datalog = "- DATA --------------------------------------------- \n";
@@ -171,10 +182,10 @@ void testApp::setupData() {
     for(int j = 0; j < b2dJoints.size(); j++) {
         b2dJoints[j].destroy();
     }
-    b2dJoints.clear();
     for(int i = 0; i < b2dParticles.size(); i++) {
         b2dParticles[i].destroy();
     }
+    b2dJoints.clear();
     b2dParticles.clear();
     
     // ADDING PARTICLES
@@ -235,7 +246,17 @@ void testApp::addParticles(int scope, int type, int num, float density, float bo
         float x = ofRandom(attract.x - deltaX, attract.x + deltaX);
         float y = typeY;
         
-        p.setup(box2d.getWorld(), x, y, 4);
+        switch(scope) {
+            case PERSONAL:
+                p.setup(box2d.getWorld(), x, y, personalMinParticleSize);
+                break;
+            case NEIGHBORHOOD:
+                p.setup(box2d.getWorld(), x, y, neighborhoodMinParticleSize);
+                break;
+            case CITY:
+                p.setup(box2d.getWorld(), x, y, cityMinParticleSize);
+                break;                
+        }
         p.setupTheCustomData(scope, type, attract.x, attract.y);
         
         
@@ -311,23 +332,6 @@ void testApp::addParticles(int scope, int type, int num, float density, float bo
         jointRight.setFrequency(1.0);
 		jointRight.setLength(50);
         
-    // MARK: add joint to group particles of same type and scope
-//        if(i > 1) {
-//            ofxBox2dJoint jointGroup1;
-//            ofxBox2dJoint jointGroup2;
-//            
-//            jointGroup1.setup(box2d.getWorld(), b2dParticles[b2dParticles.size()-1].body, p.body);
-//            jointGroup1.setDamping(0.2);
-//            jointGroup1.setFrequency(1.0);
-//            jointGroup1.setLength(4);
-//            jointGroup2.setup(box2d.getWorld(), b2dParticles[b2dParticles.size()-2].body, p.body);
-//            jointGroup2.setDamping(0.2);
-//            jointGroup2.setFrequency(1.0);
-//            jointGroup2.setLength(4);
-//
-//            b2dJoints.push_back(jointGroup1);
-//            b2dJoints.push_back(jointGroup2);
-//        }
         
     // MARK: add joints and particle to relative vectors
 		b2dJoints.push_back(jointLeft);
@@ -434,6 +438,8 @@ void testApp::draw(){
     
     for(int i = 0; i < b2dParticles.size(); i++) {
         CustomParticle p = b2dParticles[i];
+        Data * customData = (Data*)p.getData();        
+        
         
         if(kinect.pointCloud.size() > 0) {
             //            int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, kinect.getOutputWidth());            
@@ -447,7 +453,18 @@ void testApp::draw(){
                 ofPoint kinectPoint = kinect.pointCloud[relativeKinectIndex];
                 float z = (kinectPoint.z < 0.001) ? 1 : kinectPoint.z;
                 float prox = 1.0 - z;
-                float sz = 4 + (pow(prox, 2) * 50.0);
+                float sz = pow(prox, 2) * 50.0;
+                switch(customData->scope) {
+                    case PERSONAL:
+                        sz += personalMinParticleSize;
+                        break;
+                    case NEIGHBORHOOD:
+                        sz += neighborhoodMinParticleSize;
+                        break;
+                    case CITY:
+                        sz += cityMinParticleSize;
+                        break;
+                }
                 
                 p.setRadius(sz);
             }
