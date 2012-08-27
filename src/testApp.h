@@ -174,16 +174,26 @@ class testApp : public ofBaseApp{
         void setupData();
         void addParticles(int scope, int type, int num);
         void addParticles(int scope, int type, int num, 
-                          float density, float bounce, float friction);    
+                          float density, float bounce, float friction);   
     
+        bool isDebugingBox2d;
     
-        ofxBox2d				box2d;			  //	the box2d world
-        vector<CustomParticle>	b2dParticles;		  //	default box2d circles
+        ofxBox2d				box2d;			//	the box2d world
+        vector<CustomParticle>	b2dParticles;   //	box2d particles
         vector<ofxBox2dRect>    b2dBlobs;
     
         ofVec2f personalCenter;
         ofVec2f neighborhoodCenter;
         ofVec2f cityCenter;
+    
+        vector<ofxBox2dJoint>	b2dJoints;			//	joints
+        ofxBox2dCircle personalAnchorLeft, personalAnchorRight, 
+                        personalAnchorBottom, personalAnchorTop;
+        ofxBox2dCircle neighborhoodAnchorLeft, neighborhoodAnchorRight, 
+                        neighborhoodAnchorBottom, neighborhoodAnchorTop;
+        ofxBox2dCircle cityAnchorLeft, cityAnchorRight,
+                        cityAnchorBottom, cityAnchorTop;
+    
     
 
 // --------------------------------------------
