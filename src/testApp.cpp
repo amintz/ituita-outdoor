@@ -72,8 +72,15 @@ void testApp::setup(){
     
     iMode           = 0;
     
-//    gui.loadFromXML();
+    bLockKinTilt = true;
+    fKin1TiltAngle = 0;
+    fKin2TiltAngle = 0;
+    
+    
     gui.addSlider("Display Modes", iMode, 0, 2);
+    gui.addToggle("Lock Tilt Angle", bLockKinTilt);
+    gui.addSlider("Kin 1 Tilt Angle", fKin1TiltAngle, -30, 30);
+    gui.addSlider("Kin 2 Tilt Angle", fKin2TiltAngle, -30, 30);
     gui.addSlider("Near Threshold", iNearThreshold, 0, 255);
     gui.addSlider("Far Threshold", iFarThreshold, 255, 0);
     gui.addSlider("Min Blob Size", iMinBlobSize, 0, 40000);
@@ -89,7 +96,9 @@ void testApp::setup(){
     gui.addButton("Reset particles", bResetData);
     gui.addSlider("Attraction (real-time)", fAttractionForce, 0.0f, 20.0f);    
     
+    gui.loadFromXML();
     gui.show();
+    
     
     isGUIActive = true;
     
@@ -348,6 +357,12 @@ void testApp::update(){
     
     kinect.updateThreshPar(iFarThreshold, iNearThreshold);
     kinect.updateBlobPar(iMinBlobSize, iMaxBlobSize, iMaxNumBlobs);
+    
+    if(!bLockKinTilt) {
+        kinect.setKinTiltAngle(false, fKin1TiltAngle);
+        kinect.setKinTiltAngle(true, fKin2TiltAngle);
+    }
+    
     kinect.update();
     
     if(bResetData) {

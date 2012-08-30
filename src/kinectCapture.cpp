@@ -157,7 +157,7 @@ void kinectCapture::update() {
              
                      kin1FoundBlobs.push_back(ofxBlob());
              
-                     kin1FoundBlobs[i].id = kin1BlobTracker.trackedBlobs[i].id;
+                     kin1FoundBlobs[i].id = -1 * kin1BlobTracker.trackedBlobs[i].id;
                      
                      kin1FoundBlobs[i].angle = kin1BlobTracker.trackedBlobs[i].angle;
                      kin1FoundBlobs[i].maccel = kin1BlobTracker.trackedBlobs[i].maccel;
@@ -269,6 +269,19 @@ void kinectCapture::update() {
             foundBlobs = kin1FoundBlobs;
             foundBlobs.insert(foundBlobs.end(), kin2FoundBlobs.begin(), kin2FoundBlobs.end());
             
+            activeBlobsIds.clear();
+            foundBlobsMap.clear();
+            
+            for (int i = 0; i < kin1FoundBlobs.size(); i++) {
+                foundBlobsMap[kin1FoundBlobs[i].id] = kin1FoundBlobs[i];
+                activeBlobsIds.push_back(kin1FoundBlobs[i].id);
+            }
+            for (int i = 0; i < kin2FoundBlobs.size(); i++) {
+                foundBlobsMap[kin2FoundBlobs[i].id] = kin2FoundBlobs[i];
+                activeBlobsIds.push_back(kin2FoundBlobs[i].id);
+            }
+            
+            
             // DO: ASSIGN NEW CLOUD TO <POINT CLOUD>
             
             pointCloud.clear();
@@ -306,6 +319,14 @@ void kinectCapture::update() {
             
             foundBlobs.clear();
             foundBlobs = kin1FoundBlobs;
+            
+            foundBlobsMap.clear();
+            activeBlobsIds.clear();
+            
+            for (int i = 0; i < kin1FoundBlobs.size(); i++) {
+                foundBlobsMap[kin1FoundBlobs[i].id] = kin1FoundBlobs[i];
+                activeBlobsIds.push_back(kin1FoundBlobs[i].id);
+            }
             
             // DO: ASSIGN NEW CLOUD TO <POINT CLOUD>
             
@@ -375,36 +396,68 @@ void kinectCapture::drawNormBlobs(int x, int y, int w, int h){
     ofPushMatrix();
     ofTranslate(x, y);
     
-    for (int i = 0; i < foundBlobs.size(); i++) {
+//    for (int i = 0; i < foundBlobs.size(); i++) {
+//        ofSetColor(0, 255, 0);
+//        ofBeginShape();
+//        for (int j = 0; j < foundBlobs[i].pts.size(); j++) {
+//            ofVertex(foundBlobs[i].pts[j].x * (float)w, foundBlobs[i].pts[j].y * (float)h);
+//        }
+//        ofEndShape();
+//        ofSetColor(0, 0, 255);
+//        
+//// DRAW RAW BOUNDING RECT (WITHOUT ANGLE)
+////        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
+//        
+//        
+//// DRAW MINIMAL SIZED ANGLED BOUNDING RECT
+//        ofPushMatrix();
+//        ofTranslate(foundBlobs[i].angleBoundingRect.x * w, foundBlobs[i].angleBoundingRect.y * h);
+//        ofRotate(foundBlobs[i].angle+90, 0.0f, 0.0f, 1.0f);
+//        ofTranslate(-(foundBlobs[i].angleBoundingRect.x * w), -(foundBlobs[i].angleBoundingRect.y * h));                
+//        ofNoFill();
+//        
+//        ofPushStyle();
+//        ofNoFill();
+//        ofRect((foundBlobs[i].angleBoundingRect.x - foundBlobs[i].angleBoundingRect.width/2) * w, (foundBlobs[i].angleBoundingRect.y - foundBlobs[i].angleBoundingRect.height/2) * h, foundBlobs[i].angleBoundingRect.width * w, foundBlobs[i].angleBoundingRect.height * h);
+//        
+//        ofPopStyle();
+//        ofPopMatrix();        
+//        
+//        ofSetColor(255, 0, 0);
+//        //ofDrawBitmapString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
+//        font.drawString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
+//    }
+
+    for (int i = 0; i < activeBlobsIds.size(); i++) {
         ofSetColor(0, 255, 0);
         ofBeginShape();
-        for (int j = 0; j < foundBlobs[i].pts.size(); j++) {
-            ofVertex(foundBlobs[i].pts[j].x * (float)w, foundBlobs[i].pts[j].y * (float)h);
+        for (int j = 0; j < foundBlobsMap[activeBlobsIds[i]].pts.size(); j++) {
+            ofVertex(foundBlobsMap[activeBlobsIds[i]].pts[j].x * (float)w, foundBlobsMap[activeBlobsIds[i]].pts[j].y * (float)h);
         }
         ofEndShape();
         ofSetColor(0, 0, 255);
         
-// DRAW RAW BOUNDING RECT (WITHOUT ANGLE)
-//        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
+        // DRAW RAW BOUNDING RECT (WITHOUT ANGLE)
+        //        ofRect(foundBlobs[i].boundingRect.x*(float)w, foundBlobs[i].boundingRect.y*(float)h, foundBlobs[i].boundingRect.width*(float)w, foundBlobs[i].boundingRect.height*(float)h);
         
         
-// DRAW MINIMAL SIZED ANGLED BOUNDING RECT
+        // DRAW MINIMAL SIZED ANGLED BOUNDING RECT
         ofPushMatrix();
-        ofTranslate(foundBlobs[i].angleBoundingRect.x * w, foundBlobs[i].angleBoundingRect.y * h);
-        ofRotate(foundBlobs[i].angle+90, 0.0f, 0.0f, 1.0f);
-        ofTranslate(-(foundBlobs[i].angleBoundingRect.x * w), -(foundBlobs[i].angleBoundingRect.y * h));                
+        ofTranslate(foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.x * w, foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.y * h);
+        ofRotate(foundBlobsMap[activeBlobsIds[i]].angle+90, 0.0f, 0.0f, 1.0f);
+        ofTranslate(-(foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.x * w), -(foundBlobs[i].angleBoundingRect.y * h));                
         ofNoFill();
         
         ofPushStyle();
         ofNoFill();
-        ofRect((foundBlobs[i].angleBoundingRect.x - foundBlobs[i].angleBoundingRect.width/2) * w, (foundBlobs[i].angleBoundingRect.y - foundBlobs[i].angleBoundingRect.height/2) * h, foundBlobs[i].angleBoundingRect.width * w, foundBlobs[i].angleBoundingRect.height * h);
+        ofRect((foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.x - foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.width/2) * w, (foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.y - foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.height/2) * h, foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.width * w, foundBlobsMap[activeBlobsIds[i]].angleBoundingRect.height * h);
         
         ofPopStyle();
         ofPopMatrix();        
         
         ofSetColor(255, 0, 0);
-        //ofDrawBitmapString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
-        font.drawString(ofToString(foundBlobs[i].id), foundBlobs[i].centroid.x*(float)w, foundBlobs[i].centroid.y*(float)h);
+        ofDrawBitmapString(ofToString(foundBlobsMap[activeBlobsIds[i]].id), foundBlobsMap[activeBlobsIds[i]].centroid.x*(float)w, foundBlobsMap[activeBlobsIds[i]].centroid.y*(float)h);
+        //font.drawString(ofToString(foundBlobsMap[activeBlobsIds[i]].id), foundBlobsMap[activeBlobsIds[i]].centroid.x*(float)w, foundBlobsMap[activeBlobsIds[i]].centroid.y*(float)h);
     }
     
     ofPopMatrix();
@@ -488,4 +541,25 @@ int kinectCapture::getOutputWidth() {
 
 int kinectCapture::getOutputHeight() {
     return KIN_H;
+}
+
+void kinectCapture::setKinTiltAngle(bool bKinect2, float angle) {
+    if (bKinect2 && bTwoKinects) {
+        if (angle > 30) {
+            angle = 30;
+        }
+        else if (angle < -30) {
+            angle = -30;
+        }
+        kinect2.setCameraTiltAngle(angle);
+    }
+    else {
+        if (angle > 30) {
+            angle = 30;
+        }
+        else if (angle < -30) {
+            angle = -30;
+        }
+        kinect1.setCameraTiltAngle(angle);
+    }
 }

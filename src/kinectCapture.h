@@ -39,7 +39,12 @@ class kinectCapture {
     int getOutputWidth();
     int getOutputHeight();
     
+    void setKinTiltAngle(bool bKinect2, float angle);
+    
     vector<ofxBlob> foundBlobs;
+    map<int, ofxBlob> foundBlobsMap;
+    vector<int> activeBlobsIds;
+    map<int, bool> isBlobUpdated;
     vector<ofxBlob> kin1FoundBlobs;
     vector<ofxBlob> kin2FoundBlobs;
     vector<ofPoint> pointCloud;

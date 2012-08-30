@@ -12,7 +12,7 @@
 
 // MARK: "USE TWO KINECTS" SWITCH (COMMENT TO USE JUST ONE)
 
-//#define USE_TWO_KINECTS
+#define USE_TWO_KINECTS
 
 #define NEG 0
 #define NEU 1
@@ -127,7 +127,8 @@ class testApp : public ofBaseApp{
 // MARK: KINECT AND RELATED OBJECTS DECLARATION
     
         kinectCapture kinect;
-    
+        bool      bLockKinTilt;
+        float     fKin1TiltAngle, fKin2TiltAngle;
 // --------------------------------------------
 // MARK: INTERFACE VARIABLES
 
