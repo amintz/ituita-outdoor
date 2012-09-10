@@ -47,6 +47,10 @@ class kinectCapture {
     map<int, bool> isBlobUpdated;
     vector<ofxBlob> kin1FoundBlobs;
     vector<ofxBlob> kin2FoundBlobs;
+    
+    vector< vector<ofPoint> > pointCloudBuffer;
+    int iCurBufferIdx, iBufferSize;
+    
     vector<ofPoint> pointCloud;
     
     ituitaBlobTracker   kin1BlobTracker, kin2BlobTracker;
@@ -58,6 +62,8 @@ class kinectCapture {
     float normWidth(int val, bool _bTwoKinects = true);
     float normHeight(int val);
     float normDepth(int val);
+    
+    float avgBuffer(float xPos, float yPos);
     
     float setInRangeWidth(float val, bool _bTwoKinects = true, bool isKinect2 = false);
     
