@@ -14,9 +14,9 @@
 
 #define USE_TWO_KINECTS
 
-#define NEG 0
-#define NEU 1
-#define POS 2
+#define NEGATIVE 0
+#define NEUTRAL  1
+#define POSITIVE 2
 
 #define PERSONAL     0
 #define NEIGHBORHOOD 1
@@ -26,9 +26,9 @@
 #define YELLOW 0xFAEB34
 #define RED    0xED2849
 
-#define FBO_W 1440
+#define FBO_W 1024
 #define FBO_H 768
-#define OUTPUT_SCREEN_W 1024
+#define OUTPUT_SCREEN_W 1280
 #define OUTPUT_SCREEN_H 768
 
 
@@ -185,7 +185,7 @@ class testApp : public ofBaseApp{
     
         ofxBox2d				box2d;			//	the box2d world
         vector<CustomParticle>	b2dParticles;   //	box2d particles
-        vector<ofxBox2dRect>    b2dBlobs;
+        map<int, ofxBox2dRect>    b2dBlobs;
     
         ofVec2f personalCenter;
         ofVec2f neighborhoodCenter;
