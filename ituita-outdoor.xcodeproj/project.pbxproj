@@ -1538,7 +1538,7 @@
 					../../../addons/ofxOpenCv/libs/opencv/lib/osx/opencv.a,
 					../../../addons/ofxOsc/libs/oscpack/lib/osx/osc.a,
 				);
-				SDKROOT = macosx10.6;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 			};
 			name = Debug;
 		};
@@ -1671,7 +1671,7 @@
 					../../../addons/ofxOpenCv/libs/opencv/lib/osx/opencv.a,
 					../../../addons/ofxOsc/libs/oscpack/lib/osx/osc.a,
 				);
-				SDKROOT = macosx10.6;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 			};
 			name = Release;
 		};
@@ -1758,7 +1758,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)Debug";
-				SDKROOT = macosx10.6;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -1845,7 +1845,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx10.6;
+				SDKROOT = "$(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

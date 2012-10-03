@@ -2,9 +2,6 @@
 // [fturcheti] TODO list
 //--------------------------------------------------------------
 //
-// TODO: test particles size proportional to particles count
-// ?:  what about the maximum size
-//
 // TODO: implement gestures interactions
 // !:  transform blobs into box2d rects
 // !:  map the blobs/rects by its ids
@@ -21,6 +18,11 @@
 
 
 #include "testApp.h"
+
+bool    isAddingParticles = false;
+bool    hasAddedNeutrals  = false;
+int     addingWaitTime    = 3;
+double  addingStartTime;
 
 //--------------------------------------------------------------
 void testApp::setup(){
@@ -41,7 +43,7 @@ void testApp::setup(){
     fAttractionForce      = 2.0;
     
     fDensity = 8.0;
-    fBounce = 0.8; // with the joints it's better with a high value
+    fBounce = 0.4;
     fFriction  = 0.1;
 
 // --------------------------------------------
@@ -99,7 +101,6 @@ void testApp::setup(){
     gui.loadFromXML();
     gui.show();
     
-    
     isGUIActive = true;
     
 // --------------------------------------------
@@ -150,7 +151,7 @@ void testApp::setup(){
 
 float testApp::getMinParticleSize(int particlesCount) {    
     float pc = sqrt( ofClamp(particlesCount, 1, 64) );
-    return ofMap(pc, 1, 8, 30, 6);
+    return ofMap(pc, 1, 8, 20, 4);
 }
 
 void testApp::setupData() {
@@ -198,17 +199,13 @@ void testApp::setupData() {
     b2dParticles.clear();
     
     // ADDING PARTICLES
-    addParticles(PERSONAL, NEG, pneg);
-    addParticles(PERSONAL, NEU, pneu);
-    addParticles(PERSONAL, POS, ppos);
+    isAddingParticles = true;
+    addingStartTime = time(0);
     
-    addParticles(NEIGHBORHOOD, NEG, nneg);
-    addParticles(NEIGHBORHOOD, NEU, nneu);
-    addParticles(NEIGHBORHOOD, POS, npos);
+    addParticles(PERSONAL, NEGATIVE, pneg);
+    addParticles(NEIGHBORHOOD, NEGATIVE, nneg);
+    addParticles(CITY, NEGATIVE, cpos);
     
-    addParticles(CITY, NEG, cneg);
-    addParticles(CITY, NEU, cneu);
-    addParticles(CITY, POS, cpos);
 }
 
 void testApp::addParticles(int scope, int type, int num) {
@@ -233,13 +230,13 @@ void testApp::addParticles(int scope, int type, int num, float density, float bo
     int deltaX = 120;
     int typeY = 0;
     switch(type) {
-        case NEG:
+        case NEGATIVE:
             typeY = attract.y + 100;
             break;
-        case NEU:
-            typeY = attract.y;
+        case NEUTRAL:
+            typeY = attract.y - 100;
             break;
-        case POS:
+        case POSITIVE:
             typeY = attract.y - 100;
             break;
     }
@@ -273,73 +270,77 @@ void testApp::addParticles(int scope, int type, int num, float density, float bo
 		ofxBox2dJoint jointLeft;
         ofxBox2dJoint jointRight;
 		
+        float jointLength    = 100.0f; //50;
+        float jointDamping   = 0.2f; //0.2;
+        float jointFrequency = 1.0f; //1.0
+        
         switch(scope) {
             case PERSONAL: 
                 jointLeft.setup(box2d.getWorld(), personalAnchorLeft.body, p.body);		
                 jointRight.setup(box2d.getWorld(), personalAnchorRight.body, p.body);
-                if( type == NEG ) {
+                if( type == NEGATIVE ) {
                     ofxBox2dJoint jointBottom;
                     jointBottom.setup(box2d.getWorld(), personalAnchorBottom.body, p.body);
-                    jointBottom.setDamping(0.2);
-                    jointBottom.setFrequency(1.0);
-                    jointBottom.setLength(50);
+                    jointBottom.setDamping(jointDamping);
+                    jointBottom.setFrequency(jointFrequency);
+                    jointBottom.setLength(jointLength);
                     b2dJoints.push_back(jointBottom);
-                } else if( type == POS ) {
+                } else if( type == POSITIVE ) {
                     ofxBox2dJoint jointTop;
                     jointTop.setup(box2d.getWorld(), personalAnchorTop.body, p.body);
-                    jointTop.setDamping(0.2);
-                    jointTop.setFrequency(1.0);
-                    jointTop.setLength(50);
+                    jointTop.setDamping(jointDamping);
+                    jointTop.setFrequency(jointFrequency);
+                    jointTop.setLength(jointLength);
                     b2dJoints.push_back(jointTop);
                 }
                 break;
             case NEIGHBORHOOD: 
                 jointLeft.setup(box2d.getWorld(), neighborhoodAnchorLeft.body, p.body);		
                 jointRight.setup(box2d.getWorld(), neighborhoodAnchorRight.body, p.body);		
-                if( type == NEG ) {
+                if( type == NEGATIVE ) {
                     ofxBox2dJoint jointBottom;
                     jointBottom.setup(box2d.getWorld(), neighborhoodAnchorBottom.body, p.body);
-                    jointBottom.setDamping(0.2);
-                    jointBottom.setFrequency(1.0);
-                    jointBottom.setLength(50);
+                    jointBottom.setDamping(jointDamping);
+                    jointBottom.setFrequency(jointFrequency);
+                    jointBottom.setLength(jointLength);
                     b2dJoints.push_back(jointBottom);
-                } else if( type == POS ) {
+                } else if( type == POSITIVE ) {
                     ofxBox2dJoint jointTop;
                     jointTop.setup(box2d.getWorld(), neighborhoodAnchorTop.body, p.body);
-                    jointTop.setDamping(0.2);
-                    jointTop.setFrequency(1.0);
-                    jointTop.setLength(50);
+                    jointTop.setDamping(jointDamping);
+                    jointTop.setFrequency(jointFrequency);
+                    jointTop.setLength(jointLength);
                     b2dJoints.push_back(jointTop);
                 }
                 break;
             case CITY: 
                 jointLeft.setup(box2d.getWorld(), cityAnchorLeft.body, p.body);		
                 jointRight.setup(box2d.getWorld(), cityAnchorRight.body, p.body);		
-                if( type == NEG ) {
+                if( type == NEGATIVE ) {
                     ofxBox2dJoint jointBottom;
                     jointBottom.setup(box2d.getWorld(), cityAnchorBottom.body, p.body);
-                    jointBottom.setDamping(0.2);
-                    jointBottom.setFrequency(1.0);
-                    jointBottom.setLength(50);
+                    jointBottom.setDamping(jointDamping);
+                    jointBottom.setFrequency(jointFrequency);
+                    jointBottom.setLength(jointLength);
                     b2dJoints.push_back(jointBottom);
-                } else if( type == POS ) {
+                } else if( type == POSITIVE ) {
                     ofxBox2dJoint jointTop;
                     jointTop.setup(box2d.getWorld(), cityAnchorTop.body, p.body);
-                    jointTop.setDamping(0.2);
-                    jointTop.setFrequency(1.0);
-                    jointTop.setLength(50);
+                    jointTop.setDamping(jointDamping);
+                    jointTop.setFrequency(jointFrequency);
+                    jointTop.setLength(jointLength);
                     b2dJoints.push_back(jointTop);
                 }
                 break;
         }
 		
-        jointLeft.setDamping(0.2);
-        jointLeft.setFrequency(1.0);
-		jointLeft.setLength(50);
+        jointLeft.setDamping(jointDamping);
+        jointLeft.setFrequency(jointFrequency);
+		jointLeft.setLength(jointLength);
 
-        jointRight.setDamping(0.2);
-        jointRight.setFrequency(1.0);
-		jointRight.setLength(50);
+        jointRight.setDamping(jointDamping);
+        jointRight.setFrequency(jointFrequency);
+		jointRight.setLength(jointLength);
         
         
     // MARK: add joints and particle to relative vectors
@@ -370,48 +371,108 @@ void testApp::update(){
         setupData();
     }
     
-    box2d.wakeupShapes();    
-    box2d.update();	
+    if( isAddingParticles ) {
+        if(!hasAddedNeutrals && time(0)-addingStartTime > addingWaitTime ) {
+            addParticles(PERSONAL, NEUTRAL, pneu);
+            addParticles(NEIGHBORHOOD, NEUTRAL, nneu);
+            addParticles(CITY, NEUTRAL, cneu);
+            
+            hasAddedNeutrals = true;
+        }
+        if(hasAddedNeutrals && time(0)-addingStartTime > (addingWaitTime * 2)) {
+            addParticles(PERSONAL, POSITIVE, ppos);
+            addParticles(NEIGHBORHOOD, POSITIVE, npos);
+            addParticles(CITY, POSITIVE, cpos);
+            
+            isAddingParticles = false;
+            hasAddedNeutrals = false;
+        }
+    }
+    
 
     // CONVERT TOP AND BOTTOM ANCHORS INTO POSITIVES AND NEGATIVES ATTRACTION POINTS
     for(int i = 0; i < b2dParticles.size(); i++) {
         Data * customData = (Data*)b2dParticles[i].getData();        
         switch(customData->scope) {
             case PERSONAL:
-                if(customData->type == NEG) {
+                if(customData->type == NEGATIVE) {
                     b2dParticles[i].addAttractionPoint(personalAnchorBottom.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(personalCenter, fAttractionForce);
-                } else if(customData->type == NEU) {
+                } else if(customData->type == NEUTRAL) {
                     b2dParticles[i].addAttractionPoint(personalCenter, fAttractionForce);                    
-                } else if(customData->type == POS) {
+                } else if(customData->type == POSITIVE) {
                     b2dParticles[i].addAttractionPoint(personalAnchorTop.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(personalCenter, fAttractionForce);
                 }
                 break;
             case NEIGHBORHOOD:
-                if(customData->type == NEG) {
+                if(customData->type == NEGATIVE) {
                     b2dParticles[i].addAttractionPoint(neighborhoodAnchorBottom.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(neighborhoodCenter, fAttractionForce);
-                } else if(customData->type == NEU) {
+                } else if(customData->type == NEUTRAL) {
                     b2dParticles[i].addAttractionPoint(neighborhoodCenter, fAttractionForce);                    
-                } else if(customData->type == POS) {
+                } else if(customData->type == POSITIVE) {
                     b2dParticles[i].addAttractionPoint(neighborhoodAnchorTop.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(neighborhoodCenter, fAttractionForce);
                 }
                 break;
             case CITY:
-                if(customData->type == NEG) {
+                if(customData->type == NEGATIVE) {
                     b2dParticles[i].addAttractionPoint(cityAnchorBottom.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(cityCenter, fAttractionForce);
-                } else if(customData->type == NEU) {
+                } else if(customData->type == NEUTRAL) {
                     b2dParticles[i].addAttractionPoint(cityCenter, fAttractionForce);                    
-                } else if(customData->type == POS) {
+                } else if(customData->type == POSITIVE) {
                     b2dParticles[i].addAttractionPoint(cityAnchorTop.getPosition(), fAttractionForce);
                     b2dParticles[i].addRepulsionForce(cityCenter, fAttractionForce);
                 }
                 break;
         }
     }
+    
+    box2d.wakeupShapes();    
+    box2d.update();	
+
+    
+    // MARK: BLOBS BOXES
+
+    
+    // destroy dead blobs/boxes
+    for(map<int, ofxBox2dRect>::iterator it = b2dBlobs.begin(); it != b2dBlobs.end(); it++) {
+        if( kinect.foundBlobsMap.find((*it).first) == kinect.foundBlobsMap.end() ) {
+            ((*it).second).destroy();
+            b2dBlobs.erase(it);
+        }
+    }
+    
+    // update and add blobs/boxes
+    for(int i = 0; i < kinect.activeBlobsIds.size(); i++) {
+        
+        // search for the key on the map
+        int theKey = kinect.activeBlobsIds[i];
+        ofxBlob b = kinect.foundBlobsMap[theKey];
+        map<int, ofxBox2dRect>::iterator it = b2dBlobs.find(theKey);
+
+        // if it's already on it, update box
+        if( it != b2dBlobs.end() ) {
+            // inverting blob x
+            float x = ofMap(b.centroid.x, 1.0f, 0.0f, 0.0f, 1.0f);
+            b2dBlobs[theKey].setPosition(x * FBO_W, b.centroid.y * FBO_H);
+        }
+        
+        // else, add box to the map and the world 
+        else {
+            ofxBox2dRect r;
+            r.setPhysics(fDensity, fBounce, fFriction);
+            // inverting blob x
+            float x = ofMap(b.centroid.x, 1.0f, 0.0f, 0.0f, 1.0f);
+            r.setup(box2d.getWorld(), x * FBO_W, b.centroid.y * FBO_H, 
+                    b.boundingRect.width * FBO_W, b.boundingRect.height * FBO_H);
+            
+            b2dBlobs[theKey] = r;
+        }
+    }
+    
     
     
 // MARK: UPDATE ATTRACTION FORCE
@@ -457,7 +518,7 @@ void testApp::draw(){
         
         
         if(kinect.pointCloud.size() > 0) {
-            //            int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, kinect.getOutputWidth());            
+//            int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, kinect.getOutputWidth());            
             int relativeX = ofMap(p.getPosition().x, 0, FBO_W, 0, OUTPUT_SCREEN_W);
             relativeX = ofMap(relativeX, 0, OUTPUT_SCREEN_W, 0, kinect.getOutputWidth());
             int relativeY = ofMap(p.getPosition().y, 0, FBO_H, 0, kinect.getOutputHeight());
@@ -467,8 +528,9 @@ void testApp::draw(){
             if(relativeKinectIndex < kinect.pointCloud.size()) {
                 ofPoint kinectPoint = kinect.pointCloud[relativeKinectIndex];
                 float z = (kinectPoint.z < 0.001) ? 1 : kinectPoint.z;
-                float prox = 1.0 - z;
-                float sz = pow(prox, 2) * 50.0;
+                float prox = 1.2 - z;
+                
+                float sz = 0;
                 switch(customData->scope) {
                     case PERSONAL:
                         sz += personalMinParticleSize;
@@ -479,9 +541,15 @@ void testApp::draw(){
                     case CITY:
                         sz += cityMinParticleSize;
                         break;
-                }
+                }                
+                sz += prox * 80.0;
+
+                float r = p.getRadius();
                 
-                p.setRadius(sz);
+                // property = (target - property) / speed
+                r += (sz - r) / 4.0f;
+                
+                p.setRadius(r);
             }
         }    
 
@@ -538,6 +606,8 @@ void testApp::draw(){
 
 //--------------------------------------------------------------
 void testApp::drawGUI() {
+
+    box2d.disableGrabbing();
     
     ofEnableAlphaBlending();
     ofSetColor(0, 0, 0, 127);
@@ -607,8 +677,13 @@ void testApp::keyPressed(int key){
 
     if(key == 'g' || key == 'G') {
         isGUIActive = !isGUIActive;
-        if(isGUIActive) gui.show();
-        else gui.hide();
+        if(isGUIActive) {
+            box2d.disableGrabbing();
+            gui.show();
+        } else { 
+            box2d.enableGrabbing();
+            gui.hide();
+        }
 	} else if(key == 'f' || key =='F') {
         isFilterActive = !isFilterActive;
     } else if(key == 'b' || key == 'B') {
