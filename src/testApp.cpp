@@ -36,6 +36,8 @@ void testApp::setup(){
     iMinBlobSize    = 1000;
     iMaxBlobSize    = 300000;
     iMaxNumBlobs    = 10;
+    iLeftKinectId   = 0;
+    iRightKinectId  = 1;
     
     bResetData            = true;
     iMaxRandomParticles   = 20;
@@ -48,17 +50,6 @@ void testApp::setup(){
 
 // --------------------------------------------
     
-#ifdef USE_TWO_KINECTS
-    
-    kinect.setup(true);
-    
-#endif
-    
-#ifndef USE_TWO_KINECTS
-    
-    kinect.setup(false);
-    
-#endif
     
 // MARK: INTERFACE SETUP
     
@@ -96,7 +87,11 @@ void testApp::setup(){
     gui.addSlider("Bounce", fBounce, 0.0f, 1.0f);
     gui.addSlider("Friction", fFriction, 0.0f, 1.0f);
     gui.addButton("Reset particles", bResetData);
-    gui.addSlider("Attraction (real-time)", fAttractionForce, 0.0f, 20.0f);    
+    gui.addSlider("Attraction (real-time)", fAttractionForce, 0.0f, 20.0f);  
+    
+    gui.addPage("Kinect IDs");
+    gui.addSlider("Left Kinect ID", iLeftKinectId, 0, 1);
+    gui.addSlider("Right Kinect ID", iRightKinectId, 0, 1);
     
     gui.loadFromXML();
     gui.show();
@@ -105,6 +100,20 @@ void testApp::setup(){
     
 // --------------------------------------------
 
+#ifdef USE_TWO_KINECTS
+    
+    kinect.setup(true, iLeftKinectId, iRightKinectId);
+    
+#endif
+    
+#ifndef USE_TWO_KINECTS
+    
+    kinect.setup(false);
+    
+#endif
+    
+// --------------------------------------------
+    
 // MARK: SHADER
     
     shader.load("shaders/led.vert", "shaders/led.frag");

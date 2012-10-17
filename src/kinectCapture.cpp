@@ -42,6 +42,11 @@ kinectCapture::~kinectCapture() {
 }
 
 void kinectCapture::setup(bool _bTwoKinects) {
+    setup(_bTwoKinects, 0, 1);
+}
+
+void kinectCapture::setup(bool _bTwoKinects, int _iLeftKinectId, int _iRightKinectId) {
+    
     
     bTwoKinects = _bTwoKinects;
     
@@ -55,13 +60,34 @@ void kinectCapture::setup(bool _bTwoKinects) {
     int counter = 0;
     
     kinect1.init(false, false);
-    success = kinect1.open(0);
+    kinect1.open(_iLeftKinectId);
+    
+    if(bTwoKinects) {
+        fKin2Angle = 0;
+        
+        kinect2.init(false, false);
+        kinect2.open(_iRightKinectId);
+    
+    }
+    
+    kinect1.update();
+    kinect1.setCameraTiltAngle(0);
+    kinect1.close();
+    
+    if(bTwoKinects) {
+        kinect2.update();
+        kinect2.setCameraTiltAngle(0);
+        kinect2.close();
+    }
+    
+    kinect1.init(false, false);
+    success = kinect1.open(_iLeftKinectId);
     
     while (!success && counter < 10) {
         cout << "Problems found in connecting with Kinect 1. Trying again!" << endl;
         kinect1.close();
         kinect1.init(false, false);
-        success = kinect1.open(0);
+        success = kinect1.open(_iLeftKinectId);
         counter++;
     }
     
@@ -81,13 +107,20 @@ void kinectCapture::setup(bool _bTwoKinects) {
         counter = 0;
         
         kinect2.init(false, false);
-        success = kinect2.open(1);
+        success = kinect2.open(_iRightKinectId);
+        
+        kinect2.update();
+        kinect2.close();
+        
+        kinect2.init(false, false);
+        
+        success = kinect2.open(_iRightKinectId);
         
         while (!success && counter < 10) {
             cout << "Problems found in connecting with Kinect 2. Trying again!" << endl;
             kinect2.close();
             kinect2.init(false, false);
-            success = kinect2.open(1);
+            success = kinect2.open(_iRightKinectId);
             counter++;
         }
         

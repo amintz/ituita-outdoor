@@ -25,7 +25,8 @@ class kinectCapture {
     kinectCapture();
     virtual ~kinectCapture();
     
-    void setup(bool _bTwoKinects = false);
+    void setup(bool _bTwoKinects);
+    void setup(bool _bTwoKinects, int _iLeftKinectId, int iRightKinectId);
     void update();
     void updateThreshPar(int _iFarThreshold, int _iNearThreshold);
     void updateBlobPar(int _iMinBlobSize, int _iMaxBlobSize, int _iMaxNumBlobs);

@@ -144,6 +144,7 @@ class testApp : public ofBaseApp{
 // --------------------------------------------
 // MARK: CONTROL VARIABLES
 
+        int     iLeftKinectId, iRightKinectId;
         int     iFarThreshold, iNearThreshold;
         int     iMinBlobSize, iMaxBlobSize, iMaxNumBlobs;
         
